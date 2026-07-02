@@ -5,7 +5,23 @@
       "Bash(touch data_raw/compustat/.gitkeep data_raw/optionmetrics/.gitkeep)",
       "Bash(python -c \"import sys; print\\(sys.version\\)\")",
       "PowerShell(py --version 2>&1)",
-      "PowerShell(python3 --version 2>&1)"
+      "PowerShell(python3 --version 2>&1)",
+      "Bash(python -c \"import xbbg; print\\(xbbg.__file__\\); print\\(getattr\\(xbbg,'__version__','unknown'\\)\\)\")",
+      "Bash(python -c \"import pandas; print\\(pandas.__version__\\)\")",
+      "Bash(python -c \"import xbbg, inspect; from xbbg import blp; print\\(inspect.getsourcefile\\(blp.bdh\\)\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -c \"import blpapi; print\\(blpapi.__file__\\)\")",
+      "Bash(rm -f verify_out.txt verify_result.txt verify_multiindex.txt verify_multiindex_result.txt bdh_debug.txt out.txt)",
+      "Bash(python src/bloomberg/spx_iv_term_structure_download.py --start 2006-01-01 --end 2026-07-02)",
+      "Bash(env)",
+      "Bash(python src/bloomberg/spx_index_download.py --start 2006-01-01 --end 2026-07-02)",
+      "Bash(python src/bloomberg/spx_skew_wings_download.py --start 2006-01-01 --end 2026-07-02)",
+      "Bash(python src/bloomberg/vol_indexes_download.py --start 2006-01-01 --end 2026-07-02)",
+      "Bash(rm -f check_out.txt)",
+      "Bash(rm -rf src/bloomberg/__pycache__)",
+      "Bash(python src/bloomberg/spx_benchmarks_download.py --start 2006-01-01 --end 2026-07-02)",
+      "Bash(python src/bloomberg/spx_members_float_download.py --start-year 2005 --end 2026-07-02)",
+      "Bash(python -)"
     ]
   }
 }

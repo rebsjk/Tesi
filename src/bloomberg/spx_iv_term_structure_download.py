@@ -51,6 +51,55 @@ FIELDS: dict[str, tuple[str, str]] = {
 CONTENT_SLUG = "spx_iv_term_structure"
 
 
+def _bdh_to_wide(raw: object) -> pd.DataFrame:
+    """Normalize a blp.bdh() result into a wide frame: DatetimeIndex named
+    "date", (ticker, field) MultiIndex columns.
+
+    xbbg >=1.x (the installed version here is 1.4.1) rewrote bdh() around a
+    pluggable backend. Without an explicit `backend=`, it can hand back a
+    narwhals-wrapped frame whose `type(...).__name__` is still literally
+    "DataFrame" — which is what produced the misleading
+    "'DataFrame' object has no attribute 'index'" error, since narwhals
+    frames don't expose a pandas-style .index. Even with backend="pandas"
+    forced at the call site, the *shape* has also changed: bdh() now
+    defaults to long format (columns ticker/date/field/value, values as
+    strings) instead of the old wide format (DatetimeIndex + MultiIndex
+    (ticker, field) columns). This function accepts either shape so the
+    rest of the script doesn't care which xbbg version produced `raw`.
+    """
+    if not isinstance(raw, pd.DataFrame):
+        if hasattr(raw, "to_pandas"):
+            raw = raw.to_pandas()
+        elif hasattr(raw, "to_native"):
+            raw = raw.to_native()
+            if not isinstance(raw, pd.DataFrame) and hasattr(raw, "to_pandas"):
+                raw = raw.to_pandas()
+    if not isinstance(raw, pd.DataFrame):
+        raise TypeError(
+            f"blp.bdh() returned an unsupported type {type(raw)!r} that "
+            "could not be converted to a pandas DataFrame."
+        )
+
+    if isinstance(raw.columns, pd.MultiIndex):
+        # Old-style xbbg: already wide, just normalize the index dtype.
+        wide = raw.copy()
+        wide.index = pd.to_datetime(wide.index)
+        wide.index.name = "date"
+        return wide
+
+    if {"ticker", "date", "field", "value"}.issubset(raw.columns):
+        # New-style xbbg (>=1.x): long format, one row per (ticker, date, field).
+        long_df = raw.copy()
+        long_df["date"] = pd.to_datetime(long_df["date"])
+        long_df["value"] = pd.to_numeric(long_df["value"], errors="coerce")
+        wide = long_df.pivot(index="date", columns=["ticker", "field"], values="value")
+        wide = wide.sort_index()
+        wide.index.name = "date"
+        return wide
+
+    raise TypeError(f"Unrecognized blp.bdh() result shape: columns={list(raw.columns)!r}")
+
+
 def fetch_history(
     fields: dict[str, tuple[str, str]], start_date: date, end_date: date
 ) -> pd.DataFrame:
@@ -76,11 +125,16 @@ def fetch_history(
         flds=mnemonics,
         start_date=start_date.isoformat(),
         end_date=end_date.isoformat(),
+        backend="pandas",
     )
+    wide = _bdh_to_wide(raw)
 
-    flat = pd.DataFrame(index=raw.index)
+    flat = pd.DataFrame(index=wide.index)
     for concept, (ticker, mnemonic) in fields.items():
-        flat[concept] = raw[(ticker, mnemonic)]
+        if (ticker, mnemonic) in wide.columns:
+            flat[concept] = wide[(ticker, mnemonic)]
+        else:
+            flat[concept] = pd.Series(dtype="float64", index=wide.index)
     flat.index.name = "date"
     return flat
 
