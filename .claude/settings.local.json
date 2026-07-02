@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p data_raw/compustat data_raw/optionmetrics)",
+      "Bash(touch data_raw/compustat/.gitkeep data_raw/optionmetrics/.gitkeep)",
+      "Bash(python -c \"import sys; print\\(sys.version\\)\")",
+      "PowerShell(py --version 2>&1)",
+      "PowerShell(python3 --version 2>&1)"
+    ]
+  }
+}
