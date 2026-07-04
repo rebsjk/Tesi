@@ -1,0 +1,1245 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Tutti i diritti riservati.
+
+Installa la versione più recente di PowerShell per nuove funzionalità e miglioramenti. https://aka.ms/PSWindows
+
+PS C:\Users\rebecca.benassi> claude --version
+2.1.201 (Claude Code)
+PS C:\Users\rebecca.benassi> cd C:\Users\rebecca.benassi\Documents\Tesi
+PS C:\Users\rebecca.benassi\Documents\Tesi> claude
+Welcome to Claude Code v2.1.201
+..........................................................
+
+     *                                       █████▓▓░
+                                 *         ███▓░     ░░
+            ░░░░░░                        ███▓░
+    ░░░   ░░░░░░░░░░                      ███▓░
+   ░░░░░░░░░░░░░░░░░░░    *                ██▓░░      ▓
+Welcome to Claude Code v2.1.201
+ ▐▛███▜▌   Claude Code v2.1.201
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Documents\Tesi
+
+ ▎ Fable 5 is back.
+ ▎ Until July 7, you can use up to 50% of your plan's weekly usage limit
+ ▎ on Fable 5. If you hit your limit, you can continue on Fable 5 with
+ ▎ usage credits. Fable 5 draws down usage faster than Opus 4.8. Learn
+ ▎ more
+
+❯ pwd
+
+  Read 1 file (ctrl+o to expand)
+
+● C:\Users\rebecca.benassi\Documents\Tesi
+
+✻ Crunched for 8s
+
+❯ Questa repo è la mia tesi di laurea, analizzala. Sto lavorando alla mia
+  tesi di dottorato in finance su market concentration come structural
+  state variable per systemic risk e option-implied tail premia. Ho già
+  costruito e validato la pipeline Bloomberg principale per SPX e S&P
+  500: benchmark, membership storica con pesi float-adjusted ricostruiti,
+  implied volatility term structure, skew/wings e volatility indexes.
+  Ora voglio capire se e come usare anche un blocco “passive flows”.
+
+  Nel repository c’è già uno script skeleton:
+
+  src/bloomberg/passive_flows_download.py
+
+  Questo script è stato preparato ma non ancora lanciato. La struttura è
+  completa (CLI, chiamate Bloomberg, salvataggio CSV), ma l’universo di
+  ticker è volutamente vuoto. I campi Bloomberg ETF sono stati testati
+  almeno su SPY e documentati nel docstring:
+  - FUND_TOTAL_ASSETS
+  - FUND_FLOW
+
+  Quello che voglio chiarire è il senso economico e metodologico di
+  questa parte.
+
+  La mia comprensione attuale è questa:
+  - questo blocco non serve come cuore della tesi, ma come possibile
+  canale di trasmissione tra concentrazione e rischio sistemico / option
+  pricing;
+  - l’idea è che inflows e outflows verso ETF/fondi indicizzati possano
+  rappresentare una misura di passive demand / mechanical demand
+  pressure;
+  - questa variabile potrebbe poi entrare:
+    1. come controllo nelle regressioni su concentrazione, downside risk,
+  skew, VRP, tail premia;
+    2. come test di meccanismo: per esempio verificare se high
+  concentration + strong passive inflows produce effetti più forti di
+  high concentration da sola;
+    3. come misura aggregata della domanda passiva verso benchmark S&P
+  500, oppure come misura relativa cap-weighted vs equal-weighted.
+
+  Quello che ancora NON ho deciso è:
+
+  1. Universo strumenti
+  Devo decidere quali ticker includere nello script. Le opzioni che sto
+  considerando sono:
+  - set minimo: SPY, IVV, VOO
+  - set intermedio: SPY, IVV, VOO + RSP
+  - set esteso: ETF S&P 500 core + ETF equal-weight + eventuali UCITS
+  europei e/o altri veicoli indicizzati rilevanti
+
+  2. Oggetto economico che voglio misurare
+  Potrei voler misurare una di queste cose:
+  - flussi passivi verso il benchmark S&P 500 standard;
+  - confronto tra flussi verso cap-weighted vs equal-weighted;
+  - proxy più ampia di domanda passiva verso US large caps.
+
+  3. Frequenza e aggregazione
+  Devo decidere:
+  - frequenza di download / analisi (daily, weekly, monthly);
+  - se usare solo ETF o anche mutual/index funds;
+  - come aggregare i flussi quando più fondi replicano sostanzialmente lo
+  stesso benchmark;
+  - se usare i flussi in livello, scalati per AUM, oppure entrambe le
+  versioni.
+
+  Mi serve il tuo aiuto per fare una scelta metodologica pulita,
+  difendibile in una tesi PhD, ma anche pragmatica rispetto ai dati
+  Bloomberg che ho già e alla mia struttura empirica.
+
+  Vorrei che tu facessi queste cose, in ordine:
+
+  A. Valuta se questo blocco passive flows ha davvero senso nella mia
+  tesi oppure se rischia di essere marginale / dispersivo rispetto al
+  contributo principale.
+
+  B. Se ha senso, proponimi 2 o 3 design alternativi, ad esempio:
+  - design minimale;
+  - design intermedio;
+  - design esteso;
+  e per ciascuno indica:
+  - domanda economica che risponde;
+  - ticker da includere;
+  - pro metodologici;
+  - contro / rischi di identification o noise;
+  - coerenza con la mia tesi su concentration as state variable.
+
+  C. Dimmi quale design consiglieresti tu come baseline di tesi, con una
+  spiegazione chiara del perché.
+
+  D. Suggeriscimi una lista concreta di ticker da inserire nello script
+  passive_flows_download.py come prima versione.
+
+  E. Suggeriscimi anche come costruire le variabili finali da usare poi
+  nelle regressioni, per esempio:
+  - aggregate passive inflows;
+  - flows / AUM;
+  - cap-weighted minus equal-weighted flows;
+  - rolling averages / standardized flows.
+
+  F. Se utile, proponi una breve nota metodologica in inglese da poter
+  riutilizzare nel capitolo dati/metodologia della tesi per spiegare
+  perché includo o non includo i passive flows.
+
+  Vincoli importanti:
+  - non voglio over-engineering;
+  - voglio una scelta leggibile, difendibile e coerente con una tesi PhD
+  empirica;
+  - il cuore della tesi resta: concentration -> systemic fragility in P
+  and option-implied tail pricing in Q;
+  - i passive flows devono essere un blocco ausiliario / channel test,
+  non il focus principale;
+  - preferisco una soluzione parsimoniosa ma sensata rispetto a una
+  copertura troppo ampia e rumorosa.
+
+  Se pensi che la soluzione migliore sia NON usare affatto questo blocco,
+  dimmelo apertamente e spiegami perché.
+
+  Rispondi in modo strutturato e concreto, non generico. Se puoi, chiudi
+  con una raccomandazione operativa finale del tipo:
+  - “lancia ora lo script con questi ticker e questa frequenza”
+  oppure
+  - “non lanciare ancora lo script; prima decidi X e Y”.
+
+  Searched for 3 patterns, read 4 files (ctrl+o to expand)
+
+● I've read the skeleton script and the three most relevant methodology
+  docs (csi_construction.md, data_inventory.md,
+  bloomberg_field_reference.md) to ground this in what's actually built.
+  Now l'analisi.
+
+  ---
+  A. Il blocco passive flows ha senso?
+
+  Sì, ma solo nel ruolo che hai già intuito: canale ausiliario, non ramo
+  strutturale. Motivazione, ancorata al resto del repo:
+
+  - Il tuo impianto P/Q è già rigorosamente separato (CLAUDE.md,
+  bloomberg_field_reference.md), e la CSI è trattata come state variable
+  con vincoli point-in-time molto stringenti (csi_construction.md). I
+  passive flows non sono né P né Q — sono una terza famiglia di dati
+  (demand/flow), e devono restare fuori da entrambe le pipeline core,
+  entrando solo come controllo/interazione nelle regressioni di fase 4/6.
+  - Letteratura di supporto solida per la storia causale implicita
+  (concentrazione → domanda passiva meccanica → fragilità/pricing):
+  Ben-David/Franzoni/Moussawi su ETF e co-movimento, Anadu et al. su
+  passive investing e systemic risk, Sullivan/Xiong su indexing e
+  correlazione. Quindi non è un innesto arbitrario.
+  - Rischio reale da non sottovalutare: endogeneità meccanica. Se il
+  cap-weighted benchmark sale perché i mega-cap salgono, l'AUM di
+  SPY/IVV/VOO cresce per effetto prezzo, non per flow. Il campo che hai
+  confermato (FUND_FLOW, non ESTIMATED_FLOW) isola correttamente il flow
+  netto dall'effetto valutazione — bene, è il campo giusto. Ma nelle
+  regressioni dovrai comunque argomentare esplicitamente che flow ≠
+  variazione di AUM, altrimenti un revisore ti contesta la circolarità
+  "concentrazione alta → mega-cap salgono → AUM cap-weighted sale → sembra
+  domanda passiva ma è solo prezzo".
+
+  Conclusione: tienilo, ma con perimetro stretto e sempre etichettato come
+  test di canale, mai come pilastro.
+
+  B. Design alternativi
+
+  1 — Minimale: SPY, IVV, VOO
+  - Domanda economica: pressione di domanda passiva aggregata sul
+  benchmark cap-weighted standard (lo stesso indice usato in fase 1/3).
+  - Pro: copre da sola oltre il 90% dell'AUM ETF S&P 500 cap-weighted;
+  nessuna ambiguità di share class; onere dati minimo; massima
+  difendibilità.
+  - Contro: non permette il test di meccanismo #2 che vuoi tu
+  (cap-weighted vs equal-weighted).
+  - Coerenza con la tesi: alta ma incompleta — misura solo il lato
+  "cap-weighted", non la differenza che dà contenuto causale al canale.
+
+  2 — Intermedio: SPY, IVV, VOO + RSP
+  - Domanda economica: la stessa di sopra, più il test diretto "high
+  concentration + strong cap-weighted inflows amplifica più della
+  concentrazione da sola", usando RSP come controfattuale a parità di
+  paniere (stessi 500 titoli, peso diverso).
+  - Pro: RSP è l'unico veicolo equal-weight realmente liquido e dominante
+  — un solo ticker in più, zero complessità aggiuntiva di universo; il
+  confronto CW-EW ricalca esattamente la logica HHI vs Effective-N già
+  documentata in csi_construction.md (stesso sottostante, pesatura
+  diversa) — coerenza di design molto forte.
+  - Contro: AUM di RSP è ~40-60x più piccolo di SPY+IVV+VOO combinati → la
+  sua serie di flow è più rumorosa in termini relativi; gli investitori
+  RSP sono strutturalmente diversi (più tattici/quant), quindi "CW minus
+  EW flow" non è un esperimento pulito, ma è accettabile per un test di
+  canale (non causale in senso stretto).
+  - Coerenza: la più alta delle tre — usa esattamente lo stesso universo
+  di titoli della CSI, solo ripesato.
+
+  3 — Esteso: core + equal-weight + UCITS/altri veicoli
+  - Domanda economica: domanda passiva aggregata globale per US large cap,
+  oltre il solo benchmark S&P 500 meccanico.
+  - Pro: copertura più completa in astratto.
+  - Contro: seri problemi di identificazione — fusi orari/valute diverse
+  (LSE vs NYSE), share class hedged vs unhedged che sporcano
+  l'interpretazione del flow, mutual fund share class spesso solo mensili
+  su Bloomberg, aggregazione cross-currency che diventa essa stessa un
+  mini-progetto metodologico. Va esattamente contro il tuo vincolo di
+  parsimonia e rischia di diventare il bersaglio principale delle domande
+  della commissione ("perché questi fondi e non altri, con che pesi").
+  - Coerenza: bassa nel rapporto costo/beneficio rispetto al contributo
+  centrale P vs Q.
+
+  C. Raccomandazione: Design 2 (Intermedio)
+
+  SPY + IVV + VOO + RSP. È l'estensione minima che sblocca il test di
+  meccanismo esplicitamente richiesto (mechanism test #2), resta a 4
+  ticker USD, stessa borsa, stessa classe di veicolo (niente FX, niente
+  share class ambigue), e — punto decisivo — usa esattamente lo stesso
+  universo di 500 titoli già costruito in fase 1, solo ripesato in modo
+  diverso. Questo è il design che richiede zero nuova infrastruttura
+  concettuale: stai riusando la stessa distinzione
+  cap-weighted/equal-weighted che la tua CSI già tratta esplicitamente
+  come dimensione di direzionalità (HHI vs Effective-N). Il design esteso
+  lo tratterei come estensione dichiaratamente non perseguita, documentata
+  come tale, non semplicemente omessa.
+
+  D. Ticker da inserire — fatto
+
+  Ho aggiornato TICKERS nello script:
+
+● Update(src\bloomberg\passive_flows_download.py)
+
+──────────────────────────────────────────────────────────────────────────
+ Edit file
+ src\bloomberg\passive_flows_download.py
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ 45      BLOOMBERG_AVAILABLE = False
+ 46
+ 47
+  mini-progetto metodologico. Va esattamente contro il tuo vincolo di
+  parsimonia e rischia di diventare il bersaglio principale delle domande
+  della commissione ("perché questi fondi e non altri, con che pesi").
+  - Coerenza: bassa nel rapporto costo/beneficio rispetto al contributo
+  centrale P vs Q.
+
+  C. Raccomandazione: Design 2 (Intermedio)
+
+  SPY + IVV + VOO + RSP. È l'estensione minima che sblocca il test di
+  meccanismo esplicitamente richiesto (mechanism test #2), resta a 4
+  ticker USD, stessa borsa, stessa classe di veicolo (niente FX, niente
+  share class ambigue), e — punto decisivo — usa esattamente lo stesso
+  universo di 500 titoli già costruito in fase 1, solo ripesato in modo
+  diverso. Questo è il design che richiede zero nuova infrastruttura
+  concettuale: stai riusando la stessa distinzione
+  cap-weighted/equal-weighted che la tua CSI già tratta esplicitamente
+  come dimensione di direzionalità (HHI vs Effective-N). Il design esteso
+  lo tratterei come estensione dichiaratamente non perseguita, documentata
+  come tale, non semplicemente omessa.
+
+  D. Ticker da inserire — fatto
+
+  Ho aggiornato TICKERS nello script:
+
+● Update(src\bloomberg\passive_flows_download.py)
+  ⎿  Added 12 lines, removed 2 lines
+      45      BLOOMBERG_AVAILABLE = False
+      46
+      47
+      48 -# Fill in before running for real — intentionally empty i
+         -n this skeleton.
+      49 -TICKERS: list[str] = []
+      48 +# Design decision (see docs/methodology_notes/passive_flo
+         +ws_design.md):
+      49 +# intermediate design — core S&P 500 cap-weighted ETFs (S
+         +PY/IVV/VOO) plus
+      50 +# RSP (equal-weight) to support the cap-weighted-vs-equal
+         +-weighted flow
+      51 +# differential test. FUND_TOTAL_ASSETS/FUND_FLOW are only
+         + confirmed
+      52 +# non-blank for SPY (see module docstring) — re-run the t
+         +erminal
+      53 +# confirmation checklist for IVV, VOO, RSP before trustin
+         +g a full pull.
+      54 +TICKERS: list[str] = [
+      55 +    "SPY US Equity",
+      56 +    "IVV US Equity",
+      57 +    "VOO US Equity",
+      58 +    "RSP US Equity",
+      59 +]
+      60
+      61  FIELDS = {
+      62      "aum": "FUND_TOTAL_ASSETS",
+
+● E. Costruzione delle variabili finali
+
+  - Aggregate cap-weighted inflow: somma diretta di FUND_FLOW su
+  SPY+IVV+VOO (stessa valuta, stesso benchmark sottostante → sommabile
+  senza pesi).
+  - Flow / AUM: flow_t / aum_{t-1} per singolo fondo (AUM laggato di un
+  periodo, altrimenti scali per un AUM già gonfiato dal flow stesso).
+  Aggregazione dei tre in un unico numero: media pesata per AUM, non media
+  semplice (SPY domina in size, una media semplice sovrappeserebbe
+  VOO/IVV).
+  - Cap-weighted minus equal-weighted flow: (CW flow/AUM aggregato) − (RSP
+  flow/AUM). Sempre in termini normalizzati (%), mai in dollari — la
+  differenza di scala AUM tra i due gruppi rende il confronto in livello
+  privo di senso.
+  - Rolling / standardizzazione: il flow giornaliero grezzo è rumoroso
+  (meccaniche di creation/redemption e settlement lag). Usa una finestra
+  rolling (es. 21 giorni borsa ≈ 1 mese) su flow/AUM, poi standardizza —
+  ma solo con finestra trailing/expanding, mai full-sample: è la stessa
+  regola anti-look-ahead già scritta in csi_construction.md per la CSI, e
+  vale identica qui visto che questa variabile entrerà nelle stesse
+  regressioni.
+  - Frequenza: scarica a frequenza giornaliera (i campi lo supportano), ma
+  aggrega la variabile di regressione a settimanale o mensile — il flow
+  giornaliero grezzo ha troppo rumore da meccaniche di settlement per
+  essere usato tal quale; mensile si allinea meglio alla cadenza tipica
+  delle regressioni di fase 4.
+  - ETF-only, non mutual fund: mantieni il perimetro solo ETF per la
+  baseline — sono il veicolo con il meccanismo di arbitraggio (AP
+  creation/redemption) più diretto e la miglior granularità Bloomberg.
+  Documenta l'esclusione dei mutual fund come scelta esplicita, non
+  omissione silenziosa.
+
+  F. Nota metodologica
+
+  Ho scritto una bozza in inglese riutilizzabile nel capitolo
+  dati/metodologia, seguendo lo stesso stile di csi_construction.md:
+
+──────────────────────────────────────────────────────────────────────────
+ Create file
+ docs\methodology_notes\passive_flows_design.md
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+   1 # Passive flows — design and role in the thesis
+   2
+   3 Status: **draft — universe chosen, field confirmation pending for
+   4 non-SPY tickers.** This note documents why a passive-flows block i
+     s
+   5 included, the instrument universe chosen, and how the derived flow
+   6 variables should be constructed for use in Phase 4/6 regressions.
+   7
+   8 ## Role in the thesis
+   9
+  10 Passive/ETF flows are **not** a P-measure or a Q-measure input, an
+     d do
+  11 not define a new numbered build phase. They are an auxiliary,
+  12 mechanism-test variable that enters existing Phase 4 (physical-ris
+     k) and
+  13 Phase 6 (integration) regressions as a control or interaction term
+     :
+  14
+  15 1. As a control alongside CSI in downside-risk / skew / VRP / tail
+     -premia
+  16    regressions.
+  17 2. As a mechanism test: whether high concentration combined with s
+     trong
+  18    passive inflows produces a stronger effect than concentration a
+     lone.
+  19 3. As an aggregate proxy for mechanical/passive demand pressure on
+      the
+  20    S&P 500 benchmark, and — via the cap-weighted vs. equal-weighte
+     d
+  21    contrast below — a proxy for how much of that pressure is
+  22    concentration-sensitive.
+  23
+  24 The core P-vs-Q comparison does not depend on this block. It is in
+     cluded
+  25 because it gives the concentration-as-state-variable story an expl
+     icit
+  26 transmission-channel test, not because it is required to answer th
+     e
+  27 thesis's central question.
+  28
+  29 ## Instrument universe
+  30
+  31 **SPY US Equity, IVV US Equity, VOO US Equity, RSP US Equity.**
+  32
+  33 The first three are the dominant cap-weighted S&P 500 ETFs and tog
+     ether
+  34 account for the large majority of ETF AUM tracking the index used
+  35 throughout this thesis. RSP (Invesco S&P 500 Equal Weight ETF) hol
+     ds the
+  36 same 500 constituents at equal weight, giving a same-universe,
+  37 different-weighting counterfactual — directly mirroring the
+  38 HHI-vs-effective-N directionality distinction already used in the
+     CSI
+  39 construction (see `csi_construction.md`).
+  40
+  41 A broader universe (UCITS cross-listings, sector/factor ETFs, mutu
+     al
+  42 fund share classes) was considered and explicitly **not** pursued
+     for
+  43 the baseline: cross-currency and cross-timezone alignment, hedged
+     vs.
+  44 unhedged share classes, and lower-frequency mutual-fund flow repor
+     ting
+  45 would each add a layer of aggregation choices that are hard to def
+     end
+  46 individually and would dilute focus from the thesis's central
+  47 contribution. This remains a documented possible extension, not a
+  48 silent omission.
+  49
+  50 ## Field status
+  51
+  52 `FUND_TOTAL_ASSETS` (AUM) and `FUND_FLOW` (net flow, isolates flow
+      from
+  53 price-return effects on AUM) are confirmed non-blank for `SPY US E
+     quity`
+  54 only (terminal check, 2026-07-02; see
+  55 `docs/data_notes/bloomberg_field_reference.md`). Before running a
+     full
+  56 historical pull for IVV, VOO, or RSP, re-run the same confirmation
+  57 checklist (BDP/short BDH, non-blank check, actual start date) for
+     each
+  58 ticker — ETF share classes vary in what they report, and this has
+     not
+  59 yet been verified for the three additional names.
+  60
+  61 ## Derived variables
+  62
+  63 All constructed downstream of the raw `data_raw/bloomberg/bloomber
+     g_passive_flows_<date>.csv`
+  64 pull, following the same point-in-time discipline as the CSI (any
+  65 normalization/standardization statistic used at date *t* uses only
+      a
+  66 trailing or expanding window ending at *t*, never the full sample)
+     :
+  67
+  68 - **Aggregate cap-weighted inflow**: sum of `FUND_FLOW` across SPY
+     ,
+  69   IVV, VOO (same currency, same underlying benchmark — directly
+  70   summable).
+  71 - **Flow / AUM**: `flow_t / aum_{t-1}` per fund (AUM lagged one pe
+     riod
+  72   to avoid scaling by an AUM already inflated by the contemporaneo
+     us
+  73   flow), aggregated across SPY/IVV/VOO as an AUM-weighted average,
+      not
+  74   a simple average.
+  75 - **Cap-weighted minus equal-weighted flow**: aggregate CW flow/AU
+     M
+  76   minus RSP flow/AUM, expressed in normalized (%) terms — never as
+      a
+  77   raw dollar difference, given the large AUM gap between the two
+  78   groups.
+  77   raw dollar difference, given the large AUM gap between the two
+  78   groups.
+  privo di senso.
+  - Rolling / standardizzazione: il flow giornaliero grezzo è rumoroso
+  (meccaniche di creation/redemption e settlement lag). Usa una finestra
+  rolling (es. 21 giorni borsa ≈ 1 mese) su flow/AUM, poi standardizza —
+  ma solo con finestra trailing/expanding, mai full-sample: è la stessa
+  regola anti-look-ahead già scritta in csi_construction.md per la CSI, e
+  vale identica qui visto che questa variabile entrerà nelle stesse
+  regressioni.
+  - Frequenza: scarica a frequenza giornaliera (i campi lo supportano), ma
+  aggrega la variabile di regressione a settimanale o mensile — il flow
+  giornaliero grezzo ha troppo rumore da meccaniche di settlement per
+  essere usato tal quale; mensile si allinea meglio alla cadenza tipica
+  delle regressioni di fase 4.
+  - ETF-only, non mutual fund: mantieni il perimetro solo ETF per la
+  baseline — sono il veicolo con il meccanismo di arbitraggio (AP
+  creation/redemption) più diretto e la miglior granularità Bloomberg.
+  Documenta l'esclusione dei mutual fund come scelta esplicita, non
+  omissione silenziosa.
+
+  F. Nota metodologica
+
+  Ho scritto una bozza in inglese riutilizzabile nel capitolo
+  dati/metodologia, seguendo lo stesso stile di csi_construction.md:
+
+● Write(docs\methodology_notes\passive_flows_design.md)
+  ⎿  Wrote 99 lines to docs\methodology_notes\passive_flows_design.md
+       2 # Passive flows — design and role in the thesis
+       3 Status: **draft — universe chosen, field confirmation pend
+       4 non-SPY tickers.** This note documents why a passive-flows
+          block is
+         ved flow, the instrument universe chosen, and how the deri
+       6 variables should be constructed for use in Phase 4/6 regre
+       7 ssions.
+       8 ## Role in the thesis
+      10 Passive/ETF flows are **not** a P-measure or a Q-measure i
+         nput, and do
+     … +144 lines (ctrl+o to expand)
+
+● Update(docs\workflow_notes\data_inventory.md)
+
+──────────────────────────────────────────────────────────────────────────
+ Edit file
+ docs\workflow_notes\data_inventory.md
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+● Update(docs\workflow_notes\data_inventory.md)
+  ⎿  Added 11 lines
+      77  these answer different questions; this inventory just mak
+          es explicit that
+      78  the decision has to be made *before* the pull, not after.
+      79
+      80 +## (f) Passive flows — auxiliary channel block (Phase 4/6
+         + input)
+      81 +
+      82 +Not a numbered build phase — a mechanism-test control con
+         +sumed by Phase 4
+      83 +(physical-risk) and Phase 6 (integration) regressions alo
+         +ngside the CSI.
+      84 +See [passive_flows_design.md](../methodology_notes/passiv
+         +e_flows_design.md)
+      85 +for the full design rationale.
+      86 +
+      87 +| Dataset | Source | Table / fields (candidate) | Purpose
+         + | Status |
+      88 +|---|---|---|---|---|
+      89 +| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data
+         +_raw/bloomberg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Pass
+         +ive/mechanical demand pressure proxy; cap-weighted vs. eq
+         +ual-weighted flow differential | **needed** — field confi
+         +rmed non-blank for SPY only; re-confirm for IVV/VOO/RSP b
+         +efore full pull (see `bloomberg_field_reference.md` check
+         +list) |
+      90 +
+      91  ## Open decisions summary
+      92
+      93  Everything below blocks starting extraction code for the
+          phase noted, and
+
+❯ Perfetto. Ora non lanciare ancora il full download.
+
+  Fai prima una validazione Bloomberg dei campi per:
+  - SPY US Equity
+  - IVV US Equity
+  - VOO US Equity
+  - RSP US Equity
+
+  Campi da testare:
+  - FUND_TOTAL_ASSETS
+  - FUND_FLOW
+
+  Per ciascun ticker voglio sapere:
+  1. se il campo è non-vuoto;
+  2. la prima data disponibile o la copertura storica effettiva;
+  3. la frequenza osservata;
+  4. se ci sono problemi che rendono il design intermedio meno pulito del
+  previsto.
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo
+  script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage —
+  is exactly the bloomberg-extractor agent's job (it has terminal/Bash
+  access for src/bloomberg/ pulls). I'll delegate the validation and wait
+  for its results before proposing anything about a full launch.
+
+● bloomberg-extractor(Confirm Bloomberg fields for passive flows ETFs)
+  ⎿  Done (6 tool uses · 23.1k tokens · 43s)
+  (ctrl+o to expand)
+
+  - FUND_FLOW
+
+  Per ciascun ticker voglio sapere:
+  1. se il campo è non-vuoto;
+  2. la prima data disponibile o la copertura storica effettiva;
+  3. la frequenza osservata;
+  4. se ci sono problemi che rendono il design intermedio meno pulito del previsto.
+
+  Fai prima una validazione Bloomberg dei campi per:
+  - SPY US Equity
+  - IVV US Equity
+  - VOO US Equity
+  - RSP US Equity
+
+  Campi da testare:
+  - FUND_TOTAL_ASSETS
+  - FUND_FLOW
+
+  Per ciascun ticker voglio sapere:
+  1. se il campo è non-vuoto;
+  2. la prima data disponibile o la copertura storica effettiva;
+  3. la frequenza osservata;
+  4. se ci sono problemi che rendono il design intermedio meno pulito del previsto.
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  bloomberg-extractor agent's job (it has terminal/Bash access for src/bloomberg/ pulls). I'l  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  bloomberg-extractor agent's job (it has terminal/Bash access for src/bloomberg/ pulls).  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  bloomberg-extractor agent's job (it has terminal/Bash access for src/bloomberg/ pulls).
+  I'll delegate the validation and wait for its results before proposing anything about a
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly                                                                              the
+  bloomberg-extractor agent's job (it has terminal/Bash access for src/bloomberg/
+  pulls). I'll delegate the validation and wait for its results before proposing anything
+  about a full launch.
+
+  completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is
+
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.                                         4. se ci sono problemi che rendono il design intermedio meno pulito del previsto.
+
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  Se tutto è ok, allora proponimi il comando finale per lanciare lo script completo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+  Se non tutto è ok, dimmi esattamente come modificare l’universo.
+
+● This next step — actually querying Bloomberg to confirm field coverage — is exactly the
+  bloomberg-extractor agent's job (it has terminal/Bash access for src/bloomberg/ pulls).
+  I'll delegate the validation and wait for its results before proposing anything about a
+  full launch.
+
+● bloomberg-extractor(Confirm Bloomberg fields for passive flows ETFs)
+  ⎿  Done (6 tool uses · 23.1k tokens · 43s)
+  (ctrl+o to expand)
+
+● The agent couldn't execute anything — no code-runner tool in that session. Let me check
+  directly whether Bloomberg/xbbg is even reachable from this machine before going
+  further.
+
+● PowerShell(python -c "import xbbg; print('xbbg OK', xbbg.__file__)" 2>&1)
+  ⎿  xbbg OK C:\Users\rebecca.benassi\AppData\Roaming\Python\Python314\site-packages\
+     xbbg\__init__.py
+
+● PowerShell(python -c "
+            from xbbg import blp…)
+  ⎿  ERROR: UnicodeEncodeError 'charmap' codec can't encode characters in position 0-
+     51: character maps to <undefined>
+  ⎿  (timeout 1m)
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿  ERROR: AttributeError AttributeError("'DataFrame' object has no attribute 'to_cs
+     v'")
+  ⎿  (timeout 1m)
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿  TYPE: <class 'narwhals.stable.v1.DataFrame'>
+     SHAPE: (2, 3)
+     ┌──────────────────────────────────────────────────┐
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Bloomberg session is live and working — the subagent just lacked a code-execution tool.
+  I'll run the confirmation checklist directly.
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿            ticker              field          value
+     0  SPY US Equity  FUND_TOTAL_ASSETS  778776.794135
+     1  SPY US Equity          FUND_FLOW   -3355.086474
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿  (216, 4)
+                ticker        date              field        value
+     0   SPY US Equity  2026-05-26  FUND_TOTAL_ASSETS  775130.1717
+     … +66 lines (ctrl+o to expand)
+  ⎿  (timeout 1m 30s)
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿  SPY US Equity    2000-01-01/2000-01-31      rows=40 first=2000-01-03 last=2000-0
+     1-31
+     SPY US Equity    2004-01-01/2004-01-31      rows=40 first=2004-01-02 last=2004-0
+     … +20 lines (ctrl+o to expand)
+  ⎿  (timeout 2m)
+
+● PowerShell($env:PYTHONIOENCODING = "utf-8"
+            python -c "…)
+  ⎿  1993-01-01/1993-03-31 rows= 10 first= 1993-01-29
+     1995-01-01/1995-01-31 rows= 4 first= 1995-01-30
+     1997-01-01/1997-01-31 rows= 4 first= 1997-01-30
+  ⎿  (timeout 1m)
+
+● Validazione completata — risultati puliti su tutti e 4 i ticker. Riassumo e poi aggiorno
+  la documentazione secondo la convenzione del progetto (spec confermata prima, script
+  dopo).
+
+  Risultati:
+
+  Ticker: SPY US Equity
+  Non-blank (BDP)?: Sì (778,776.8 / -3,355.1)
+  Prima data disponibile: 1993-01-29 (~inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: Storia più lunga del gruppo
+  ────────────────────────────────────────
+  Ticker: IVV US Equity
+  Non-blank (BDP)?: Sì (885,833.1 / 374.5)
+  Prima data disponibile: 2000-05-22 (~7gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: —
+  ────────────────────────────────────────
+  Ticker: VOO US Equity
+  Non-blank (BDP)?: Sì (981,164.6 / 4,234.7)
+  Prima data disponibile: 2010-09-09 (~2gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: Storia parte solo nel 2010 — se la finestra campionaria della tesi precede il
+  2010,
+     l'aggregato cap-weighted deve passare da SPY+IVV a SPY+IVV+VOO in un punto preciso,
+    non essere NaN-riempito silenziosamente
+  ────────────────────────────────────────
+  Ticker: RSP US Equity
+  Non-blank (BDP)?: Sì (96,713.7 / 782.5)
+  Prima data disponibile: 2003-04-29 (~5gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: —
+
+  Nessun campo blank, nessuna anomalia di reporting per share class, frequenza daily
+  confermata identica su tutti e 4 (54 righe = 27 giorni borsa × 2 campi, nessun buco).
+  L'unico punto che rende il design "meno pulito del previsto" — ma gestibile, non
+  bloccante — è che il panel a 4 ticker è sbilanciato prima del 2010 per via
+  dell'inception di VOO.
+
+  Aggiorno la documentazione prima dello script, come da convenzione del progetto.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src\bloomberg\passive_flows_download.py)
+
+──────────────────────────────────────────────────────────────────────────────────────────
+ Edit file
+ src\bloomberg\passive_flows_download.py
+  dopo).
+
+  Risultati:
+
+  Ticker: SPY US Equity
+  Non-blank (BDP)?: Sì (778,776.8 / -3,355.1)
+  Prima data disponibile: 1993-01-29 (~inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: Storia più lunga del gruppo
+  ────────────────────────────────────────
+  Ticker: IVV US Equity
+  Non-blank (BDP)?: Sì (885,833.1 / 374.5)
+  Prima data disponibile: 2000-05-22 (~7gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: —
+  ────────────────────────────────────────
+  Ticker: VOO US Equity
+  Non-blank (BDP)?: Sì (981,164.6 / 4,234.7)
+  Prima data disponibile: 2010-09-09 (~2gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: Storia parte solo nel 2010 — se la finestra campionaria della tesi precede il
+  2010,
+     l'aggregato cap-weighted deve passare da SPY+IVV a SPY+IVV+VOO in un punto preciso,
+    non essere NaN-riempito silenziosamente
+  ────────────────────────────────────────
+  Ticker: RSP US Equity
+  Non-blank (BDP)?: Sì (96,713.7 / 782.5)
+  Prima data disponibile: 2003-04-29 (~5gg da inception)
+  Frequenza osservata (finestra recente 27gg borsa): Daily pulita, 0 gap
+  Note: —
+
+  Nessun campo blank, nessuna anomalia di reporting per share class, frequenza daily
+  confermata identica su tutti e 4 (54 righe = 27 giorni borsa × 2 campi, nessun buco).
+  L'unico punto che rende il design "meno pulito del previsto" — ma gestibile, non
+  bloccante — è che il panel a 4 ticker è sbilanciato prima del 2010 per via
+  dell'inception di VOO.
+
+  Aggiorno la documentazione prima dello script, come da convenzione del progetto.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src\bloomberg\passive_flows_download.py)
+  ⎿  Added 17 lines, removed 12 lines
+       1 -"""Skeleton: pull passive-fund AUM and net flows for a given set of ETF/f
+         -und
+       2 -tickers (structure only — no confirmed ticker universe yet).
+       1 +"""Pull passive-fund AUM and net flows for the intermediate passive-flows
+       2 +design (see docs/methodology_notes/passive_flows_design.md): SPY, IVV, VO
+         +O
+       3 +(cap-weighted S&P 500) plus RSP (equal-weight), for the cap-weighted vs.
+       4 +equal-weighted flow differential channel test.
+       5
+       4 -Not run as part of this batch: the full list of index/sector ETFs relevan
+         -t
+       5 -to the CSI passive-flows angle (SPY/IVV/VOO plus whatever sector or facto
+         -r
+       6 -funds the thesis ends up using) hasn't been decided yet, so this file
+       7 -intentionally ships with an empty default universe rather than a guessed
+       8 -one — fill in TICKERS before running for real.
+       9 -
+      10 -Field mnemonics ARE confirmed in terminal (2026-07-02) against `SPY US
+      11 -Equity`, following the same procedure as
+       6 +Field mnemonics confirmed in terminal against all 4 tickers (SPY on
+       7 +2026-07-02; IVV/VOO/RSP on 2026-07-04), following the procedure in
+       8  docs/data_notes/bloomberg_field_reference.md:
+       9
+      10  | Concept | Mnemonic | Notes |
+      11  |---|---|---|
+      16 -| Fund AUM | `FUND_TOTAL_ASSETS` | Confirmed non-blank, daily history ava
+         -ilable via BDH. Units: millions of the fund's listing currency. |
+      17 -| Fund net flow | `FUND_FLOW` | Confirmed non-blank, daily history availa
+         -ble via BDH. Same units as AUM. |
+      12 +| Fund AUM | `FUND_TOTAL_ASSETS` | Confirmed non-blank for all 4 tickers,
+         + daily history via BDH. Units: millions of the fund's listing currency. |
+      13 +| Fund net flow | `FUND_FLOW` | Confirmed non-blank for all 4 tickers, da
+         +ily history via BDH. Same units as AUM. |
+      14
+      15 +Confirmed history start (first non-blank date, both fields): SPY
+      16 +1993-01-29, IVV 2000-05-22, VOO 2010-09-09, RSP 2003-04-29 — each
+      17 +essentially at fund inception. Frequency is genuinely daily with no gaps
+      18 +in a spot-checked recent 27-trading-day window (54 rows = 27 days x 2
+      19 +fields for every ticker). VOO's shorter history means any aggregate
+      20 +cap-weighted series (SPY+IVV+VOO) is an unbalanced panel before
+      21 +2010-09-09 — sum only SPY+IVV before that date, add VOO from inception,
+      22 +don't backfill/NaN-fill it.
+      23 +
+      24  `ESTIMATED_FLOW` was also tried and came back blank for SPY — not used.
+      25  Re-run the confirmation checklist in bloomberg_field_reference.md for any
+      26  new ticker before trusting these two fields for it; ETF share classes var
+          y
+
+● Update(src\bloomberg\passive_flows_download.py)
+  ⎿  Added 2 lines, removed 3 lines
+      53  # Design decision (see docs/methodology_notes/passive_flows_design.md):
+      54  # intermediate design — core S&P 500 cap-weighted ETFs (SPY/IVV/VOO) plus
+      55  # RSP (equal-weight) to support the cap-weighted-vs-equal-weighted flow
+      56 -# differential test. FUND_TOTAL_ASSETS/FUND_FLOW are only confirmed
+      57 -# non-blank for SPY (see module docstring) — re-run the terminal
+      58 -# confirmation checklist for IVV, VOO, RSP before trusting a full pull.
+      56 +# differential test. All 4 tickers' fields confirmed non-blank in termina
+         +l
+      57 +# (see module docstring) — safe to run the full historical pull.
+      58  TICKERS: list[str] = [
+      59      "SPY US Equity",
+      60      "IVV US Equity",
+
+● Ora aggiorno la nota metodologica e l'inventory con l'esito confermato.
+
+● Update(docs\methodology_notes\passive_flows_design.md)
+  ⎿  Added 4 lines, removed 4 lines
+      1  # Passive flows — design and role in the thesis
+      2
+      3 -Status: **draft — universe chosen, field confirmation pending for
+      4 -non-SPY tickers.** This note documents why a passive-flows block is
+      5 -included, the instrument universe chosen, and how the derived flow
+      6 -variables should be constructed for use in Phase 4/6 regressions.
+      3 +Status: **universe chosen, fields confirmed for all 4 tickers (2026-07-04)
+        +.**
+      4 +This note documents why a passive-flows block is included, the instrument
+      5 +universe chosen, and how the derived flow variables should be constructed
+      6 +for use in Phase 4/6 regressions.
+      7
+      8  ## Role in the thesis
+      9
+
+● Update(docs\methodology_notes\passive_flows_design.md)
+  ⎿  Added 22 lines, removed 7 lines
+      50  ## Field status
+      51
+      52  `FUND_TOTAL_ASSETS` (AUM) and `FUND_FLOW` (net flow, isolates flow from
+      53 -price-return effects on AUM) are confirmed non-blank for `SPY US Equity`
+      54 -only (terminal check, 2026-07-02; see
+      55 -`docs/data_notes/bloomberg_field_reference.md`). Before running a full
+      56 -historical pull for IVV, VOO, or RSP, re-run the same confirmation
+      57 -checklist (BDP/short BDH, non-blank check, actual start date) for each
+      58 -ticker — ETF share classes vary in what they report, and this has not
+      59 -yet been verified for the three additional names.
+      53 +price-return effects on AUM) are confirmed non-blank for all 4 tickers
+      54 +(SPY terminal check 2026-07-02; IVV/VOO/RSP terminal check 2026-07-04).
+      55 +Confirmed history start (first non-blank date, both fields), each
+      56 +essentially at fund inception:
+      57
+      58 +| Ticker | First non-blank date | Observed frequency |
+      59 +|---|---|---|
+      60 +| SPY US Equity | 1993-01-29 | Daily, no gaps (spot-checked recent 27-tra
+         +ding-day window) |
+      61 +| IVV US Equity | 2000-05-22 | Daily, no gaps |
+      62 +| VOO US Equity | 2010-09-09 | Daily, no gaps |
+      63 +| RSP US Equity | 2003-04-29 | Daily, no gaps |
+      64 +
+      65 +No field-blank or share-class reporting issues found for any of the 4
+      66 +tickers. The one design-relevant consequence: **VOO's history only
+      67 +starts in 2010**, materially later than SPY/IVV. Any aggregate
+      68 +cap-weighted series (SPY+IVV+VOO) is therefore an unbalanced panel
+      69 +before 2010-09-09 — sum only SPY+IVV before that date and add VOO from
+      70 +its inception, rather than backfilling or NaN-filling it. This does not
+      71 +change the design (SPY+IVV alone already cover the large majority of
+      72 +cap-weighted S&P 500 ETF AUM pre-2010), but must be handled explicitly
+      73 +in the aggregation code, and stated in the thesis text so the sample
+      74 +composition change is not silently absorbed into the series.
+      75 +
+      76  ## Derived variables
+      77
+      78  All constructed downstream of the raw `data_raw/bloomberg/bloomberg_passi
+          ve_flows_<date>.csv`
+
+● Update(docs\workflow_notes\data_inventory.md)
+  ⎿  Added 1 line, removed 1 line
+      86
+      87  | Dataset | Source | Table / fields (candidate) | Purpose | Status |
+      88  |---|---|---|---|---|
+      89 -| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg`
+      70 +its inception, rather than backfilling or NaN-filling it. This does not
+      71 +change the design (SPY+IVV alone already cover the large majority of
+      72 +cap-weighted S&P 500 ETF AUM pre-2010), but must be handled explicitly
+      73 +in the aggregation code, and stated in the thesis text so the sample
+      74 +composition change is not silently absorbed into the series.
+      75 +
+      76  ## Derived variables
+      77
+      78  All constructed downstream of the raw `data_raw/bloomberg/bloomberg_passive_flows_<date>.csv`
+
+● Update(docs\workflow_notes\data_inventory.md)
+  ⎿  Added 1 line, removed 1 line
+      86
+      87  | Dataset | Source | Table / fields (candidate) | Purpose | Status |
+      88  |---|---|---|---|---|
+      89 -| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure proxy; cap-weighted vs. equal-weighted flow dif
+         -ferential | **needed** — field confirmed non-blank for SPY only; re-confirm for IVV/VOO/RSP before full pull (see `bloomberg_field_reference.md` checklist) |
+      89 +| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg` | `FUND      76  ## Derived variables
+      77
+      78  All constructed downstream of the raw `data_raw/bloomberg/bloomberg_passi
+          ve_flows_<date>.csv`
+
+● Update(docs\workflow_notes\data_inventory.md)
+  ⎿  Added 1 line, removed 1 line
+      86
+      87  | Dataset | Source | Table / fields (candidate) | Purpose | Status |
+      88  |---|---|---|---|---|
+      89 -| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg`
+         -| `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure p
+         -roxy; cap-weighted vs. equal-weighted flow differential | **needed** — fi
+         -eld confirmed non-blank for SPY only; re-confirm for IVV/VOO/RSP before f
+         -ull pull (see `bloomberg_field_reference.md` checklist) |
+      89 +| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg`
+         +| `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure p
+         +roxy; cap-weighted vs. equal-weighted flow differential | **needed** — fi
+         +elds confirmed non-blank for all 4 tickers (2026-07-04); full historical
+         +pull not yet run |
+      90
+      91  ## Open decisions summary
+      92
+
+● Validazione completata — il design intermedio regge
+
+  Tutti e 4 i campi/ticker sono confermati non-vuoti, con frequenza daily pulita e nessuna
+  anomalia di reporting per share class. L'unico accorgimento necessario (non bloccante)
+  è che VOO ha storia solo dal 2010-09-09 — quando costruirai l'aggregato cap-weighted
+  (SPY+IVV+VOO), somma solo SPY+IVV prima di quella data e aggiungi VOO dall'inception,
+  senza NaN-fill silenzioso. L'ho documentato in passive_flows_design.md e nel docstring
+  dello script.
+
+  File aggiornati:
+  - src/bloomberg/passive_flows_download.py — TICKERS popolato, docstring con date di
+  conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a "confermato",
+  tabella coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+
+  Comando finale per il full download
+
+  File aggiornati:
+  - src/bloomberg/passive_flows_download.py — TICKERS popolato, docstring con date di
+  conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a "confermato",
+  tabella coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+
+  Comando finale per il full download
+
+  python -m src.bloomberg.passive_flows_download --start 1993-01-01 --end 2026-07-04
+
+  Puoi partire da 1993-01-01 senza problemi: per IVV/VOO/RSP, BDH restituirà
+      89 +| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloombe
+         +rg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pr
+         +essure proxy; cap-weighted vs. equal-weighted flow differential | **n
+         +eeded** — fields confirmed non-blank for all 4 tickers (2026-07-04);
+         +full historical pull not yet run |
+      90
+      91  ## Open decisions summary
+      92
+
+● Validazione completata — il design intermedio regge
+
+  Tutti e 4 i campi/ticker sono confermati non-vuoti, con frequenza daily pulita e
+  nessuna anomalia di reporting per share class. L'unico accorgimento necessario (non
+  bloccante) è che VOO ha storia solo dal 2010-09-09 — quando costruirai l'aggregato
+  cap-weighted (SPY+IVV+VOO), somma solo SPY+IVV prima di quella data e aggiungi VOO
+  dall'inception, senza NaN-fill silenzioso. L'ho documentato in
+  passive_flows_design.md e nel docstring dello script.
+
+  File aggiornati:
+  - src/bloomberg/passive_flows_download.py — TICKERS popolato, docstring con date di
+  conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a "confermato",
+  tabella coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+
+  Comando finale per il full download
+
+  python -m src.bloomberg.passive_flows_download --start 1993-01-01 --end 2026-07-04
+
+
+  Tutti e 4 i campi/ticker sono confermati non-vuoti, con frequenza daily pulita e
+  nessuna anomalia di reporting per share class. L'unico accorgimento necessario
+  (non bloccante) è che VOO ha storia solo dal 2010-09-09 — quando costruirai
+  l'aggregato cap-weighted (SPY+IVV+VOO), somma solo SPY+IVV prima di quella data e
+  aggiungi VOO dall'inception, senza NaN-fill silenzioso. L'ho documentato in
+  passive_flows_design.md e nel docstring dello script.
+
+  File aggiornati:
+  - src/bloomberg/passive_flows_download.py — TICKERS popolato, docstring con date
+  di conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a
+  "confermato", tabella coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+  di conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a
+  "confermato", tabella coverage/frequenza
+
+  File aggiornati:
+  - src/bloomberg/passive_flows_download.py — TICKERS popolato, docstring con date
+  di conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a
+  "confermato", tabella coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+  conferma e coverage per ticker
+  conferma e coverage per ticker
+  - docs/methodology_notes/passive_flows_design.md — status aggiornato a "confermato", tabella
+  coverage/frequenza
+  - docs/workflow_notes/data_inventory.md — riga passive flows aggiornata
+
+  Comando finale per il full download
+
+  python -m src.bloomberg.passive_flows_download --start 1993-01-01 --end 2026-07-04
+
+  Puoi partire da 1993-01-01 senza problemi: per IVV/VOO/RSP, BDH restituirà semplicemente
+  righe assenti prima della loro rispettiva inception — non serve calcolare tu la data di
+  inizio per ciascun ticker. TICKERS è già valorizzato nello script con il design intermedio,
+  quindi non serve passare --tickers esplicitamente (ma puoi aggiungerlo per un comando più
+  auto-documentante se preferisci).
+
+✻ Sautéed for 7m 17s
+
+※ recap: You're deciding whether to add a passive-flows channel to the CSI thesis; Bloomberg
+  fields for SPY/IVV/VOO/RSP are now confirmed clean and docs updated. Next: run the full
+  download with the command I gave, or tell me to adjust the ticker list first. (disable
+  recaps in /config)
+
+❯ Fai un riepilogo sintetico della sessione di oggi (Bloomberg passive flows + aggiornamento
+  note + git) e salvalo in un file markdown in docs/workflow_notes/, con nome tipo
+  session_2026-07-04_claude_terminal.md.Fai un riepilogo sintetico della sessione di oggi
+  (Bloomberg passive flows + aggiornamento note + git) e salvalo in un file markdown in
+  docs/workflow_notes/, con nome
+
+● PowerShell(git status; echo "---DIFF STAT---"; git diff --stat)
+  ⎿  git : Termine 'git' non riconosciuto come nome di cmdlet, funzione, programma esegui
+     bile
+     o file script. Controllare l'ortografia del nome o verificare che il percorso sia
+     … +19 lines (ctrl+o to expand)
+
+● PowerShell(Get-Command git -ErrorAction SilentlyContinue; where.exe git 2>&1)
+  ⎿  Error: Exit code 1
+     where.exe : INFORMAZIONI: impossibile trovare file corrispondenti ai
+     In riga:1 car:48
+     + Get-Command git -ErrorAction SilentlyContinue; where.exe git 2>&1
+     +                                                ~~~~~~~~~~~~~~~~~~
+         + CategoryInfo          : NotSpecified: (INFORMAZIONI: i...rispondenti ai :String)
+     [], R
+        emoteException
+         + FullyQualifiedErrorId : NativeCommandError
+
+     criteri di ricerca indicati.
+
+● Non ho git disponibile in questa sessione PowerShell (comando non trovato), quindi non ho
+  eseguito commit — lo segnalo nel riepilogo insieme all'elenco dei file da committare
+  manualmente.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ Create file
+ docs\workflow_notes\session_2026-07-04_claude_terminal.md
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+   1 # Session summary — 2026-07-04 (Claude terminal session)
+   2
+   3 Sintesi della sessione di lavoro sul blocco passive flows: decisione di
+   4 design, validazione campi Bloomberg, aggiornamento documentazione. Nessun
+   5 commit git eseguito in questa sessione (vedi sezione Git in fondo).
+   6
+   7 ## 1. Decisione di design — passive flows block
+   8
+   9 Discussione su ruolo, universo strumenti, frequenza e costruzione delle
+  10 variabili per il blocco `src/bloomberg/passive_flows_download.py`
+  11 (skeleton preesistente, universo ticker vuoto).
+  12
+  13 - **Ruolo confermato**: canale ausiliario/mechanism-test per la tesi
+  14   (concentration → passive/mechanical demand → fragility/pricing), non un
+  15   ramo strutturale. Non introduce una nuova fase numerata; alimenta le
+  16   regressioni di fase 4 (physical-risk) e fase 6 (integration) come
+  17   controllo/interazione accanto alla CSI.
+  18 - **Design scelto**: intermedio — `SPY US Equity`, `IVV US Equity`,
+  19   `VOO US Equity` (cap-weighted core) + `RSP US Equity` (equal-weight),
+  20   per abilitare il test cap-weighted vs. equal-weighted flow differential.
+  21   Design esteso (UCITS, mutual fund share class, altri veicoli)
+  22   esplicitamente valutato e scartato per la baseline — rischio di rumore
+  23   cross-currency/cross-vehicle non giustificato rispetto al contributo
+  24   centrale della tesi.
+  25 - **Documentato in**: `docs/methodology_notes/passive_flows_design.md`
+  26   (nuovo file — ruolo, universo, alternative scartate, costruzione
+  27   variabili derivate, frequenza, anti-look-ahead).
+  28
+  29 ## 2. Validazione campi Bloomberg
+  30
+  31 Sessione Bloomberg Terminal attiva e raggiungibile via `xbbg` da questa
+  32 macchina — validazione eseguita direttamente (BDP + BDH) invece che
+  33 tramite lo skeleton script, per non lanciare il pull storico completo
+  34 prima della conferma.
+  35
+  36 | Ticker | Campi non-vuoti (BDP)? | Prima data disponibile | Frequenza (finestra 27gg
+     borsa) |
+  37 |---|---|---|---|
+  38 | SPY US Equity | Sì | 1993-01-29 | Daily, 0 gap |
+  39 | IVV US Equity | Sì | 2000-05-22 | Daily, 0 gap |
+  40 | VOO US Equity | Sì | 2010-09-09 | Daily, 0 gap |
+  41 | RSP US Equity | Sì | 2003-04-29 | Daily, 0 gap |
+  42
+  43 Campi testati: `FUND_TOTAL_ASSETS` (AUM), `FUND_FLOW` (net flow). Ogni
+  44 ticker risulta confermato essenzialmente dalla propria data di inception,
+  45 nessuna anomalia di reporting per share class.
+  46
+  45 nessuna anomalia di reporting per share class.
+  46
+  righe assenti prima della loro rispettiva inception — non serve calcolare tu la data di
+  inizio per ciascun ticker. TICKERS è già valorizzato nello script con il design intermedio,
+  quindi non serve passare --tickers esplicitamente (ma puoi aggiungerlo per un comando più
+  auto-documentante se preferisci).
+
+✻ Sautéed for 7m 17s
+
+※ recap: You're deciding whether to add a passive-flows channel to the CSI thesis; Bloomberg
+  fields for SPY/IVV/VOO/RSP are now confirmed clean and docs updated. Next: run the full
+  download with the command I gave, or tell me to adjust the ticker list first. (disable
+  recaps in /config)
+
+❯ Fai un riepilogo sintetico della sessione di oggi (Bloomberg passive flows + aggiornamento
+  note + git) e salvalo in un file markdown in docs/workflow_notes/, con nome tipo
+  session_2026-07-04_claude_terminal.md.Fai un riepilogo sintetico della sessione di oggi
+  (Bloomberg passive flows + aggiornamento note + git) e salvalo in un file markdown in
+  docs/workflow_notes/, con nome
+
+● PowerShell(git status; echo "---DIFF STAT---"; git diff --stat)
+  ⎿  git : Termine 'git' non riconosciuto come nome di cmdlet, funzione, programma esegui
+     bile
+     o file script. Controllare l'ortografia del nome o verificare che il percorso sia
+     … +19 lines (ctrl+o to expand)
+
+● PowerShell(Get-Command git -ErrorAction SilentlyContinue; where.exe git 2>&1)
+  ⎿  Error: Exit code 1
+     where.exe : INFORMAZIONI: impossibile trovare file corrispondenti ai
+     In riga:1 car:48
+     + Get-Command git -ErrorAction SilentlyContinue; where.exe git 2>&1
+     +                                                ~~~~~~~~~~~~~~~~~~
+         + CategoryInfo          : NotSpecified: (INFORMAZIONI: i...rispondenti ai :String)
+     [], R
+        emoteException
+         + FullyQualifiedErrorId : NativeCommandError
+
+     criteri di ricerca indicati.
+
+● Non ho git disponibile in questa sessione PowerShell (comando non trovato), quindi non ho
+  eseguito commit — lo segnalo nel riepilogo insieme all'elenco dei file da committare
+  manualmente.
+
+● Write(docs\workflow_notes\session_2026-07-04_claude_terminal.md)
+  ⎿  Wrote 89 lines to docs\workflow_notes\session_2026-07-04_claude_terminal.md
+       1 # Session summary — 2026-07-04 (Claude terminal session)
+       2
+       3 Sintesi della sessione di lavoro sul blocco passive flows: decisione di
+       4 design, validazione campi Bloomberg, aggiornamento documentazione. Nessun
+       5 commit git eseguito in questa sessione (vedi sezione Git in fondo).
+       6
+       7 ## 1. Decisione di design — passive flows block
+       8
+       9 Discussione su ruolo, universo strumenti, frequenza e costruzione delle
+      10 variabili per il blocco `src/bloomberg/passive_flows_download.py`
+     … +80 lines (ctrl+o to expand)
+
+● Riepilogo salvato in docs/workflow_notes/session_2026-07-04_claude_terminal.md. Nota: git
+  non è raggiungibile dal PATH di questa sessione PowerShell, quindi non ho potuto controllare
+  lo stato del repo né fare commit — il file elenca i 3 file toccati (più se stesso) da
+  aggiungere manualmente quando vuoi committare.
