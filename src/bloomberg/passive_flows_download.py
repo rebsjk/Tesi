@@ -1,20 +1,25 @@
-"""Skeleton: pull passive-fund AUM and net flows for a given set of ETF/fund
-tickers (structure only — no confirmed ticker universe yet).
+"""Pull passive-fund AUM and net flows for the intermediate passive-flows
+design (see docs/methodology_notes/passive_flows_design.md): SPY, IVV, VOO
+(cap-weighted S&P 500) plus RSP (equal-weight), for the cap-weighted vs.
+equal-weighted flow differential channel test.
 
-Not run as part of this batch: the full list of index/sector ETFs relevant
-to the CSI passive-flows angle (SPY/IVV/VOO plus whatever sector or factor
-funds the thesis ends up using) hasn't been decided yet, so this file
-intentionally ships with an empty default universe rather than a guessed
-one — fill in TICKERS before running for real.
-
-Field mnemonics ARE confirmed in terminal (2026-07-02) against `SPY US
-Equity`, following the same procedure as
+Field mnemonics confirmed in terminal against all 4 tickers (SPY on
+2026-07-02; IVV/VOO/RSP on 2026-07-04), following the procedure in
 docs/data_notes/bloomberg_field_reference.md:
 
 | Concept | Mnemonic | Notes |
 |---|---|---|
-| Fund AUM | `FUND_TOTAL_ASSETS` | Confirmed non-blank, daily history available via BDH. Units: millions of the fund's listing currency. |
-| Fund net flow | `FUND_FLOW` | Confirmed non-blank, daily history available via BDH. Same units as AUM. |
+| Fund AUM | `FUND_TOTAL_ASSETS` | Confirmed non-blank for all 4 tickers, daily history via BDH. Units: millions of the fund's listing currency. |
+| Fund net flow | `FUND_FLOW` | Confirmed non-blank for all 4 tickers, daily history via BDH. Same units as AUM. |
+
+Confirmed history start (first non-blank date, both fields): SPY
+1993-01-29, IVV 2000-05-22, VOO 2010-09-09, RSP 2003-04-29 — each
+essentially at fund inception. Frequency is genuinely daily with no gaps
+in a spot-checked recent 27-trading-day window (54 rows = 27 days x 2
+fields for every ticker). VOO's shorter history means any aggregate
+cap-weighted series (SPY+IVV+VOO) is an unbalanced panel before
+2010-09-09 — sum only SPY+IVV before that date, add VOO from inception,
+don't backfill/NaN-fill it.
 
 `ESTIMATED_FLOW` was also tried and came back blank for SPY — not used.
 Re-run the confirmation checklist in bloomberg_field_reference.md for any
@@ -45,8 +50,17 @@ except ImportError:
     BLOOMBERG_AVAILABLE = False
 
 
-# Fill in before running for real — intentionally empty in this skeleton.
-TICKERS: list[str] = []
+# Design decision (see docs/methodology_notes/passive_flows_design.md):
+# intermediate design — core S&P 500 cap-weighted ETFs (SPY/IVV/VOO) plus
+# RSP (equal-weight) to support the cap-weighted-vs-equal-weighted flow
+# differential test. All 4 tickers' fields confirmed non-blank in terminal
+# (see module docstring) — safe to run the full historical pull.
+TICKERS: list[str] = [
+    "SPY US Equity",
+    "IVV US Equity",
+    "VOO US Equity",
+    "RSP US Equity",
+]
 
 FIELDS = {
     "aum": "FUND_TOTAL_ASSETS",

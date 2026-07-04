@@ -77,6 +77,17 @@ option chains vs. both. `options-tail-analyst`'s scope already flags that
 these answer different questions; this inventory just makes explicit that
 the decision has to be made *before* the pull, not after.
 
+## (f) Passive flows — auxiliary channel block (Phase 4/6 input)
+
+Not a numbered build phase — a mechanism-test control consumed by Phase 4
+(physical-risk) and Phase 6 (integration) regressions alongside the CSI.
+See [passive_flows_design.md](../methodology_notes/passive_flows_design.md)
+for the full design rationale.
+
+| Dataset | Source | Table / fields (candidate) | Purpose | Status |
+|---|---|---|---|---|
+| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure proxy; cap-weighted vs. equal-weighted flow differential | **needed** — fields confirmed non-blank for all 4 tickers (2026-07-04); full historical pull not yet run |
+
 ## Open decisions summary
 
 Everything below blocks starting extraction code for the phase noted, and
