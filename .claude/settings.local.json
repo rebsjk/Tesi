@@ -21,7 +21,14 @@
       "Bash(rm -rf src/bloomberg/__pycache__)",
       "Bash(python src/bloomberg/spx_benchmarks_download.py --start 2006-01-01 --end 2026-07-02)",
       "Bash(python src/bloomberg/spx_members_float_download.py --start-year 2005 --end 2026-07-02)",
-      "Bash(python -)"
+      "Bash(python -)",
+      "Bash(mkdir -p /tmp/docx_extract)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(pip install *)",
+      "Bash(python -c \"import pandas; print\\('pandas', pandas.__version__\\)\")",
+      "Bash(python -c \"import sys; print\\(sys.version_info\\)\")",
+      "Bash(pip show *)",
+      "Bash(python *)"
     ]
   }
 }
