@@ -9,6 +9,7 @@ one-time `wrds.Connection()` interactive login) before it can run
 non-interactively.
 """
 
+import os
 import sys
 from datetime import datetime, timezone
 
@@ -16,6 +17,10 @@ import wrds
 
 REPORT_PATH = sys.argv[1] if len(sys.argv) > 1 else "wrds_access_report.txt"
 TARGET_LIBRARIES = ["crsp", "comp", "ff"]
+# wrds.Connection() prompts for a username on stdin even when .pgpass already
+# holds the password for this host — it only skips the *password* prompt.
+# Set WRDS_USERNAME so this script is actually non-interactive as documented.
+WRDS_USERNAME = os.environ.get("WRDS_USERNAME", "")
 
 
 def main():
@@ -23,7 +28,7 @@ def main():
     lines.append(f"WRDS access report — generated {datetime.now(timezone.utc).isoformat()}")
     lines.append("=" * 70)
 
-    db = wrds.Connection()
+    db = wrds.Connection(wrds_username=WRDS_USERNAME) if WRDS_USERNAME else wrds.Connection()
     try:
         lines.append("\n## All libraries visible to this account\n")
         libraries = db.list_libraries()
