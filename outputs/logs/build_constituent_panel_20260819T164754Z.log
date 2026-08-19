@@ -1,0 +1,8 @@
+2026-08-19 18:47:54,521 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\build_constituent_panel_20260819T164754Z.log
+2026-08-19 18:47:54,522 INFO membership: C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_membership_clean_20260819.csv
+2026-08-19 18:47:54,522 INFO returns:    C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_returns_clean_20260819.csv
+2026-08-19 18:47:56,399 INFO crosswalk:  none — entity_id treated as permno directly (CRSP-native)
+2026-08-19 18:47:56,439 INFO 29 gaps between consecutive membership intervals (median 1854.0 days, 0 of them exactly 1 day). A large count of 1-day gaps suggests end_date is being supplied as inclusive rather than exclusive — see the interval boundary convention in the module docstring.
+2026-08-19 18:47:58,044 INFO 1632122 of 4956942 return observations fell outside any membership interval and were excluded from the constituent panel.
+2026-08-19 18:47:58,557 WARNING 8 panel rows have a missing dlycap (e.g. an appended delisting-return observation with no market-cap value) — excluded from the daily weight denominator, not dropped from the panel.
+2026-08-19 18:48:01,865 INFO Wrote 3324820 rows to C:\Users\rebec\Desktop\Tesi\data_final\universe\universe_constituent_panel_20260819.parquet

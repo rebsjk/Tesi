@@ -1,10 +1,30 @@
 """Build the phase-1 constituent universe panel (membership, weights, returns).
 
+Membership source (updated 2026-08-19): CRSP `dsp500list_v2` is used
+directly (see docs/workflow_notes/session_03_CSI_data_pull_claude_summary.md
+and docs/data_notes/crsp_sp500_raw_pull_20260819.md), not Bloomberg. CRSP's
+membership table is already PERMNO-native, so `entity_id` defaults to
+`permno` directly and no Bloomberg crosswalk is required for Phase 1 — see
+`docs/workflow_notes/data_inventory.md`. The `crosswalk` parameter/CLI flag
+is kept, not removed: if a future index needs Bloomberg-sourced membership
+(or if GICS/other Bloomberg-only fields need to be joined on later), the
+same crosswalk path still works, it's just optional now rather than required.
+
+Weight (updated 2026-08-19): no longer carried on the membership file.
+CRSP doesn't expose the official point-in-time index weight to this
+project's WRDS subscription tier (see
+docs/methodology_notes/index_weight_construction.md), so weight is
+self-computed here, after the membership join, as each permno's share of
+total market cap (`dlycap`, from `src/crsp/clean_sp500_raw.py`) among the
+permnos actually active in the index on that date — the same point-in-time
+set this module's own interval join already determines, so recomputing
+"active membership" a second time upstream would just duplicate this join.
+
 Point-in-time design
 ---------------------
-Bloomberg membership data must arrive as *intervals*, not a current snapshot:
-one row per (entity_id, weight, start_date, end_date), where start_date is
-the reconstitution date the weight became effective and end_date is the next
+Membership data must arrive as *intervals*, not a current snapshot: one row
+per (entity_id, start_date, end_date), where start_date is the
+reconstitution date the entity joined and end_date is the next
 reconstitution date (or null/NaT if the constituent is still in the index as
 of the last pull). This is what makes the panel usable as an input to a
 state variable that will condition regressions run over the same historical
@@ -46,19 +66,17 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.utils.paths import (
-    BLOOMBERG_INTERIM,
     CRSP_INTERIM,
     LOGS,
-    MANUAL_RAW,
     UNIVERSE_FINAL,
     latest_raw_file,
 )
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_MEMBERSHIP_COLS = {"entity_id", "weight", "start_date", "end_date"}
+REQUIRED_MEMBERSHIP_COLS = {"entity_id", "start_date", "end_date"}
 REQUIRED_CROSSWALK_COLS = {"entity_id", "permno"}
-REQUIRED_RETURNS_COLS = {"permno", "date", "ret"}
+REQUIRED_RETURNS_COLS = {"permno", "date", "ret", "dlycap"}
 
 
 def load_membership(path: Path) -> pd.DataFrame:
@@ -140,31 +158,48 @@ def _check_membership_interval_structure(membership: pd.DataFrame) -> None:
 
 def build_constituent_panel(
     membership: pd.DataFrame,
-    crosswalk: pd.DataFrame,
     returns: pd.DataFrame,
+    crosswalk: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Return the point-in-time entity-date constituent panel.
 
-    Output columns: date, permno, entity_id, weight, ret, membership_start,
-    membership_end.
+    `crosswalk` is optional. When omitted (the default — used for CRSP-
+    sourced membership, which is already PERMNO-native), `entity_id` is
+    treated as `permno` directly, no join needed. Pass a crosswalk
+    (entity_id, permno) only when membership comes from a source that
+    doesn't use PERMNO as its native key (e.g. Bloomberg).
+
+    Output columns: date, permno, entity_id, weight, ret, dlycap,
+    membership_start, membership_end. `weight` is computed here, after the
+    membership join, as each permno's share of total `dlycap` among permnos
+    actually active in the index on that date — see
+    docs/methodology_notes/index_weight_construction.md.
     """
-    membership_pn = membership.merge(crosswalk, on="entity_id", how="left")
-    unmatched = membership_pn["permno"].isna().sum()
-    if unmatched:
-        logger.warning(
-            "%d of %d membership intervals had no crosswalk match to a PERMNO "
-            "and were dropped.",
-            unmatched,
-            len(membership_pn),
-        )
-    membership_pn = membership_pn.dropna(subset=["permno"]).copy()
+    if crosswalk is not None:
+        membership_pn = membership.merge(crosswalk, on="entity_id", how="left")
+        unmatched = membership_pn["permno"].isna().sum()
+        if unmatched:
+            logger.warning(
+                "%d of %d membership intervals had no crosswalk match to a PERMNO "
+                "and were dropped.",
+                unmatched,
+                len(membership_pn),
+            )
+        membership_pn = membership_pn.dropna(subset=["permno"]).copy()
+    else:
+        membership_pn = membership.copy()
+        membership_pn["permno"] = membership_pn["entity_id"]
     membership_pn["permno"] = membership_pn["permno"].astype(returns["permno"].dtype)
 
     _check_membership_interval_structure(membership_pn)
 
-    returns_sorted = returns.sort_values(["permno", "date"]).reset_index(drop=True)
+    # merge_asof with `by=` still requires the `on` column globally sorted in
+    # this pandas version, not just sorted within each `by` group — sorting
+    # ["permno", "date"] (group-then-key) trips "left keys must be sorted"
+    # on real multi-permno data, so sort key-then-group instead.
+    returns_sorted = returns.sort_values(["date", "permno"]).reset_index(drop=True)
     membership_sorted = membership_pn.sort_values(
-        ["permno", "start_date"]
+        ["start_date", "permno"]
     ).reset_index(drop=True)
 
     # asof-merge with direction="backward" only ever looks at membership
@@ -199,8 +234,28 @@ def build_constituent_panel(
 
     panel = panel.loc[in_index].copy()
     panel = panel.rename(columns={"start_date": "membership_start", "end_date": "membership_end"})
+
+    missing_cap = panel["dlycap"].isna().sum()
+    if missing_cap:
+        logger.warning(
+            "%d panel rows have a missing dlycap (e.g. an appended delisting-return "
+            "observation with no market-cap value) — excluded from the daily weight "
+            "denominator, not dropped from the panel.",
+            missing_cap,
+        )
+    panel["weight"] = panel["dlycap"] / panel.groupby("date")["dlycap"].transform("sum")
+
     panel = panel[
-        ["date", "permno", "entity_id", "weight", "ret", "membership_start", "membership_end"]
+        [
+            "date",
+            "permno",
+            "entity_id",
+            "weight",
+            "ret",
+            "dlycap",
+            "membership_start",
+            "membership_end",
+        ]
     ].reset_index(drop=True)
 
     _assert_point_in_time_integrity(panel)
@@ -258,22 +313,24 @@ def main() -> None:
     logger.info("Logging to %s", log_path)
 
     membership_path = args.membership or latest_raw_file(
-        BLOOMBERG_INTERIM, "bloomberg_membership_weights"
+        CRSP_INTERIM, "crsp_sp500_membership_clean"
     )
-    crosswalk_path = args.crosswalk or latest_raw_file(
-        MANUAL_RAW, "manual_permno_bbgid_crosswalk"
-    )
-    returns_path = args.returns or latest_raw_file(CRSP_INTERIM, "crsp_returns")
+    returns_path = args.returns or latest_raw_file(CRSP_INTERIM, "crsp_sp500_returns_clean")
 
     logger.info("membership: %s", membership_path)
-    logger.info("crosswalk:  %s", crosswalk_path)
     logger.info("returns:    %s", returns_path)
 
     membership = load_membership(membership_path)
-    crosswalk = load_crosswalk(crosswalk_path)
     returns = load_returns(returns_path)
 
-    panel = build_constituent_panel(membership, crosswalk, returns)
+    crosswalk = None
+    if args.crosswalk:
+        logger.info("crosswalk:  %s", args.crosswalk)
+        crosswalk = load_crosswalk(args.crosswalk)
+    else:
+        logger.info("crosswalk:  none — entity_id treated as permno directly (CRSP-native)")
+
+    panel = build_constituent_panel(membership, returns, crosswalk)
 
     UNIVERSE_FINAL.mkdir(parents=True, exist_ok=True)
     out_path = args.out or UNIVERSE_FINAL / (

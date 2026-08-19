@@ -1,0 +1,89 @@
+CRSP legacy ("SIZ") vs. v2 ("CIZ") table family resolution
+Generated 2026-08-19 (Phase 1 CRSP raw pull, crsp-extractor)
+======================================================================
+
+## Step A — legacy vs. v2 coverage (MAX date), queried via crsp_m_stock / crsp_m_indexes
+
+| Table                          | MAX date observed | Row count   |
+|---------------------------------|--------------------|-------------|
+| dsf (legacy daily)              | 2024-12-31         | 107,663,470 |
+| dsf_v2 (CIZ daily)               | 2026-07-31         | 111,836,578 |
+| msf (legacy monthly)            | 2024-12-31         | 5,153,763   |
+| msf_v2 (CIZ monthly)             | 2026-07-31         | 5,318,082   |
+| dsp500list (legacy membership)  | 2024-12-31 (ending)| 2,064       |
+| dsp500list_v2 (CIZ membership)   | 2026-07-31 (mbrenddt) | 2,095    |
+| msp500list (legacy membership)  | 2024-12-31 (ending)| 2,064       |
+| msp500list_v2 (CIZ membership)   | 2026-07-31 (mbrenddt) | 2,095    |
+| dsedelist (legacy delisting)    | 2024-12-31         | 38,872      |
+| msedelist (legacy delisting)    | 2024-12-31         | 38,843      |
+| stkdelists (CIZ delisting)      | 2026-07-30         | 30,290      |
+| stocknames (legacy names)       | n/a (83,280 rows)  | 83,280      |
+| stocknames_v2 (CIZ names)        | n/a (90,127 rows)  | 90,127      |
+
+**Finding:** every legacy table is frozen at 2024-12-31 (consistent with
+CRSP's documented SIZ-format sunset); every _v2 (CIZ) table continues
+through ~2026-07-30/31, i.e. current through essentially today
+(2026-08-19, allowing ~2-3 weeks' normal WRDS update lag).
+
+**Decision: use the _v2 (CIZ) family for everything in this pull** —
+membership (dsp500list_v2), returns (dsf_v2), delisting (stkdelists),
+names/identifiers (stocknames_v2). Legacy tables are not used for any
+piece of this pull, consistent with the rule not to mix legacy and v2
+column conventions across pieces.
+
+## Step B — unexpected access-path finding (logged since it blocked the
+## pull until worked around; factual vendor/subscription finding, not a
+## research-design decision)
+
+Querying via the unified logical schema `crsp.<table>` (e.g.
+`crsp.dsp500list_v2`, `crsp.dsf_v2`) — the form used in
+outputs/logs/wrds_access_report.txt's table listing and in most published
+WRDS/CRSP code examples — failed for every table tried, both legacy and
+v2, with `psycopg2.errors.InsufficientPrivilege: permission denied for
+schema crsp_a_stock` / `crsp_a_indexes` / `crsp_a_ccm`. `db.list_tables()`
+lists these views regardless of grant (catalog-level listing), and
+`has_table_privilege('crsp.dsf_v2','select')` even returns True for the
+logical view — but the view resolves to a physical schema
+(`crsp_a_stock`/`crsp_a_indexes`/`crsp_a_ccm`) this account has no USAGE
+grant on (`has_schema_privilege` returns False for all `crsp_a_*` and
+`crsp_q_stock*`/`crsp_q_indexes*`/`crsp_q_mi_hist` schemas).
+
+This account's actual entitlement (via `has_schema_privilege`, confirmed
+True) is: `crsp_m_stock`, `crsp_m_indexes`, `crsp_m_ccm`,
+`crsp_q_mutualfunds` (plus the always-open `crsp`/`crspa`/`crspm`/`crspq`/
+`crspsamp*` sample-level schemas, which do not contain full production
+data). Identically-named tables (dsf, dsf_v2, msf, msf_v2, dsp500list,
+dsp500list_v2, msp500list, msp500list_v2, dsedelist, msedelist,
+stkdelists, stocknames, stocknames_v2) exist directly under these granted
+physical schemas and ARE queryable there — e.g. `crsp_m_stock.dsf_v2`
+instead of `crsp.dsf_v2`, `crsp_m_indexes.dsp500list_v2` instead of
+`crsp.dsp500list_v2`.
+
+**Practical resolution used for this pull:** query the physical schemas
+(`crsp_m_stock.*`, `crsp_m_indexes.*`) directly rather than the `crsp.*`
+logical synonyms.
+
+**Known gap, flagged not resolved:** index constituent point-in-time
+*weight* (`idx_const_close_v2`/`idx_const_open_v2`, which carry
+`index_weight`, `market_cap`, `dividend`, etc.) exists ONLY under the
+`crsp_q_mi_hist` physical schema, which this account does NOT have USAGE
+on. `dsp500list_v2`/`msp500list_v2` (membership) carry no weight column
+(only `permno, indno, mbrstartdt, mbrenddt, mbrflg, indfam`). Weight is
+therefore not directly pullable this session. Per the task's fallback
+instruction, `dsf_v2` (accessible) carries `dlycap` (CRSP-computed daily
+market cap, `dlyprc * shrout`-equivalent, adjustment-aware) and
+`dlyprevcap` per permno-date — this is pulled alongside returns/prices so
+`src/universe/` can construct weight = permno `dlycap` / sum(`dlycap`)
+over the current index membership set at each date, without needing
+`idx_const_close_v2`. Flagged for the user: if point-in-time official
+index weights (rather than CRSP-derived market-cap weights) are required
+for reconciliation against Bloomberg, `crsp_q_mi_hist` access would need
+to be requested from WRDS separately — not resolved in this session.
+
+## Step C — index identity confirmation
+
+`dsp500list_v2`/`msp500list_v2` both resolve to a single `(indno, indfam)
+= (1000500, 1100500)`, and `crsp_m_indexes.indseriesinfohdr_ind` confirms
+`indnm = "CRSP Value-Weighted Index of the S&P 500 Universe"`,
+`indbegdt = 1925-12-31`, `indenddt = 2026-07-31`. Confirms the table is
+correctly scoped to the S&P 500 (not S&P 400/600 or a bundle of series).

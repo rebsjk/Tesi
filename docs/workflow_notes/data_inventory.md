@@ -16,13 +16,14 @@ required before the phase is complete, doesn't block starting · **optional**
 
 | Dataset | Source | Table / fields (candidate) | Purpose | Status |
 |---|---|---|---|---|
-| Index membership + weight history | `data_raw/bloomberg` | Periodic weight snapshot per constituent (Shape A in [membership_interval_convention.md](../methodology_notes/membership_interval_convention.md)), e.g. `INDX_MWEIGHT_PX`/`INDX_MWEIGHT_HIST`-class field for the chosen index | Defines the constituent set and weight for the phase-1 point-in-time panel | **blocking** |
-| Constituent identifiers | `data_raw/bloomberg` | `BB_TICKER`, `ID_CUSIP`, `ID_ISIN`, `ID_BB_GLOBAL` per constituent-date | Builds the entity_id side of the PERMNO crosswalk | **blocking** |
-| CRSP Daily/Monthly Stock File | `data_raw/crsp` | `PERMNO`, `date`, `RET`, `PRC`, `SHROUT`, `SHRCD`, `EXCHCD` | Realized return series — used here and reused in Phase 4 | **blocking** |
-| CRSP Delisting file | `data_raw/crsp` | `PERMNO`, `DLRET`, `DLSTDT`, `DLSTCD` | Delisting-adjusted returns; omitting this biases realized risk downward exactly at index-exit events, which matter for a concentration/systemic-risk thesis | **blocking** |
-| CRSP Names/Header (Stock Event) file | `data_raw/crsp` | `PERMNO`, `PERMCO`, CUSIP history, ticker history, `NAMEDT`/`NAMEENDT` | Supports crosswalk matching across CUSIP/ticker changes over time (a straight current-CUSIP match will miss renamed/re-CUSIPed names) | **blocking** |
-| PERMNO ↔ Bloomberg entity_id crosswalk | `data_raw/manual` | `entity_id, permno` (+ match method/confidence) | Resolves cases an automated CUSIP/ISIN match can't (formatting differences, share-class ambiguity) | **blocking** |
-| Documented reconstitution effective dates (2-3 events) | `data_raw/manual` | Event name, announced effective date, source citation | The spot-check inputs required by membership_interval_convention.md step 2 (inclusive/exclusive detection) | **blocking** — needed before the first panel build is trusted |
+| Index membership | `data_raw/crsp` | `crsp_m_indexes.dsp500list_v2` (`permno, mbrstartdt, mbrenddt`) — pulled 2026-08-19, see [crsp_sp500_raw_pull_20260819.md](../data_notes/crsp_sp500_raw_pull_20260819.md) | Defines the constituent set for the phase-1 point-in-time panel; source changed from the originally planned Bloomberg pull per the 2026-07-05 session decision | **done** |
+| Constituent weight | `data_raw/crsp` | Self-computed from `dsf_v2.dlycap`, not a published index-weight field — see [index_weight_construction.md](../methodology_notes/index_weight_construction.md) | Capital weight input to HHI/CR-k/effective-N/entropy | **done** |
+| CRSP Daily Stock File | `data_raw/crsp` | `dsf_v2` (`permno, dlycaldt, dlyret, dlyprc, shrout, dlycap`, + `sharetype`/`primaryexch` for the filter below) | Realized return series — used here and reused in Phase 4 | **done** |
+| CRSP Delisting file | `data_raw/crsp` | `stkdelists` (`permno, delistingdt, delret, ...`) | Delisting-adjusted returns; omitting this biases realized risk downward exactly at index-exit events, which matter for a concentration/systemic-risk thesis | **done** — 459/462 events with a valid `delret` compounded into the last observation in `src/crsp/clean_sp500_raw.py`; 3 permnos (11786, 83630, 90090) had a missing `delret` and were left unadjusted, logged, not imputed |
+| CRSP Names/Header file | `data_raw/crsp` | `stocknames_v2` (`permno, permco`, CUSIP/ticker history) | Identifier history — retained for a future crosswalk if one is ever needed (e.g. GICS join), not currently consumed by the Phase 1 build | **done** (pulled, not yet used) |
+| Share type / exchange filter | `data_interim/crsp` | `sharetype='NS'`, `primaryexch in {N,Q,A}` — decided 2026-08-19 | Restricts the daily panel to ordinary common shares on a major exchange, matching CRSP legacy `shrcd IN (10,11)` | **done** — applied in `src/crsp/clean_sp500_raw.py`. Pre-filter: 5,019,232 rows / 1,117 permnos. Post-filter: 4,956,942 rows / 1,108 permnos. Dropped by `sharetype`: SB 34,920, UG 11,795, AD 1,480 (+13,628 `NS` rows dropped on the exchange leg of the filter). Dropped by `primaryexch` (non-N/Q/A component): X 11,866, B 1,978, I 251 |
+| PERMNO ↔ Bloomberg entity_id crosswalk | `data_raw/manual` | `entity_id, permno` (+ match method/confidence) | **Not needed for Phase 1** (decided 2026-08-19) — `dsp500list_v2` is already PERMNO-native, so `build_constituent_panel.py`'s `crosswalk` argument now defaults to `None` and treats `entity_id == permno` directly. Kept as an optional code path, not deleted: still needed if a Bloomberg-only field (e.g. GICS sector) has to be joined on later | **not needed** (was: blocking) |
+| Documented reconstitution effective dates (2-3 events) | `data_raw/manual` | Event name, announced effective date, source citation | The manual spot-check `membership_interval_convention.md` step 2 calls for (inclusive/exclusive date detection), now against CRSP `dsp500list_v2`'s `mbrenddt` rather than a Bloomberg field. The automated step-3 regression check (`_check_membership_interval_structure`) ran clean on the first real build: 29 gaps between consecutive same-permno intervals, median 1,854 days, **zero** exactly-1-day gaps — no evidence of a systematic inclusive-end-date bug, but this is not a substitute for the manual spot-check, which hasn't been done | **needed** — doesn't block the panel that's already built, but the panel isn't fully trusted at the reconstitution-boundary level until this runs |
 
 ## (b) Concentration measures — Phase 2
 
@@ -94,9 +95,13 @@ Everything below blocks starting extraction code for the phase noted, and
 should be resolved (or explicitly deferred with a reason) before that
 phase's agent begins pulling:
 
-1. Exact Bloomberg field mnemonic for index membership/weight history, and
-   its inclusive/exclusive date convention — blocks Phase 1
-   (see [membership_interval_convention.md](../methodology_notes/membership_interval_convention.md)).
+1. `dsp500list_v2.mbrenddt`'s inclusive/exclusive date convention — resolved
+   as Bloomberg-sourced in the original phrasing of this item, superseded
+   by the 2026-08-19 switch to CRSP-native membership. The automated
+   regression check is clean (see the Phase 1 table above); the manual
+   spot-check against 2-3 documented reconstitution events (`membership_interval_convention.md`
+   step 2) still hasn't been run — **needed**, not blocking the panel that
+   already exists.
 2. Whether sector-adjusted concentration will be implemented — determines
    whether GICS/Compustat sector data is ever pulled — Phase 2, optional.
 3. Bloomberg vs. OptionMetrics as the primary options-tail source — blocks

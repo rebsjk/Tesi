@@ -10,8 +10,9 @@ code, don't invent a third convention ad hoc inside a notebook.
 
 ## Canonical form
 
-One row per `(entity_id, weight, start_date, end_date)`, **half-open on
-`[start_date, end_date)`**:
+One row per `(entity_id, start_date, end_date)`, **half-open on
+`[start_date, end_date)`**. `weight` is not part of the membership file —
+see the note below.
 
 - `start_date` is **inclusive** — the weight is effective *on* this date.
 - `end_date` is **exclusive** — the weight is no longer effective *on* this
@@ -26,6 +27,18 @@ implements it (`merge_asof(..., direction="backward")` plus a strict
 check will hard-fail on overlapping intervals. This document exists so the
 convention is decided and verified *before* raw data is converted, rather
 than discovered as a bug after a panel is already built.
+
+**Weight is not carried on the membership file (updated 2026-08-19).**
+This document originally assumed a Bloomberg-style periodic weight
+snapshot (Shape A below), where weight is piecewise-constant across an
+interval because it comes from a low-frequency vendor pull. Phase 1 now
+sources membership from CRSP `dsp500list_v2` directly (no weight column
+at all) and computes weight as a genuinely *daily* series from CRSP
+market cap, in `src/universe/build_constituent_panel.py`, after the
+membership join — see `docs/methodology_notes/index_weight_construction.md`.
+The half-open interval convention below still governs membership
+(in/out of the index), just without a weight value attached to each
+interval.
 
 **Why half-open and not closed-inclusive-both-ends:** a closed convention
 requires knowing the exact next trading day to set the outgoing interval's

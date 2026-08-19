@@ -1,0 +1,12 @@
+2026-08-19 18:44:21,658 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\clean_sp500_raw_20260819.txt
+2026-08-19 18:44:54,918 INFO Loaded raw membership: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_membership_20260819.csv (1146 rows)
+2026-08-19 18:44:54,920 INFO Loaded raw returns:    C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_returns_daily_20260819.csv (5019232 rows)
+2026-08-19 18:44:54,956 INFO Loaded raw delistings: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_delistings_20260819.csv (467 rows)
+2026-08-19 18:45:01,748 INFO Share/exchange filter (sharetype=NS, primaryexch in ['A', 'N', 'Q']): 5019232 -> 4956942 rows (1117 -> 1108 distinct permnos)
+2026-08-19 18:45:01,785 INFO Dropped rows by sharetype: {'SB': 34920, 'NS': 13628, 'UG': 11795, 'AD': 1480}
+2026-08-19 18:45:01,785 INFO Dropped rows by primaryexch: {'N': 48195, 'X': 11866, 'B': 1978, 'I': 251}
+2026-08-19 18:45:59,396 INFO Delisting adjustment: 459 compounded into last observation, 0 appended as a new final observation, 3 missing delret left unadjusted (permnos: [11786, 83630, 90090])
+2026-08-19 18:46:53,211 INFO Wrote 1146 membership rows to C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_membership_clean_20260819.csv
+2026-08-19 18:46:53,211 INFO Wrote 4956942 return rows to C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_returns_clean_20260819.csv
+2026-08-19 18:46:53,212 INFO Filter stats: {'pre_rows': 5019232, 'post_rows': 4956942, 'pre_permnos': 1117, 'post_permnos': 1108, 'dropped_by_sharetype': {'SB': 34920, 'NS': 13628, 'UG': 11795, 'AD': 1480}, 'dropped_by_primaryexch': {'N': 48195, 'X': 11866, 'B': 1978, 'I': 251}}
+2026-08-19 18:46:53,212 INFO Permnos with missing delret (unadjusted): [11786, 83630, 90090]

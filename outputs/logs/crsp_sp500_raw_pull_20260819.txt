@@ -1,0 +1,36 @@
+CRSP S&P 500 raw pull — generated 2026-08-19T15:04:31.685165+00:00
+Window requested: 2000-01-01 to 2026-08-19
+Table family: CIZ (_v2) — see crsp_legacy_vs_v2_resolution_20260819.txt
+Physical schemas used: crsp_m_indexes (membership), crsp_m_stock (returns/delisting/names)
+======================================================================
+
+## Membership (dsp500list_v2, indno=1000500)
+Rows: 1146
+Distinct PERMNOs (full historical membership, not just current): 1117
+mbrstartdt range: 1925-12-31 00:00:00 to 2026-06-29 00:00:00
+mbrenddt range: 2000-01-05 00:00:00 to 2026-07-31 00:00:00
+Saved: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_membership_20260819.csv
+
+## Returns (dsf_v2)
+Rows: 5019232
+Distinct PERMNOs returned: 1117
+PERMNOs in membership with ZERO return rows returned: 0
+dlycaldt range: 2000-01-03 00:00:00 to 2026-07-31 00:00:00
+Saved: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_returns_daily_20260819.csv
+
+## Delistings (stkdelists, CIZ)
+Rows: 467
+Distinct PERMNOs with a delisting event: 467
+delistingdt range: 2000-01-05 00:00:00 to 2026-05-06 00:00:00
+Saved: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_delistings_20260819.csv
+
+## Names/identifiers (stocknames_v2, CIZ)
+Rows: 4727
+Distinct PERMNOs: 1117
+Saved: C:\Users\rebec\Desktop\Tesi\data_raw\crsp\crsp_sp500_names_20260819.csv
+
+## Distinct PERMNO count per month, sample dates (membership table)
+2000-06-30: 500 distinct PERMNOs active
+2013-06-28: 500 distinct PERMNOs active
+2020-06-30: 505 distinct PERMNOs active
+2026-06-30: 503 distinct PERMNOs active
