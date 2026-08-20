@@ -1,0 +1,7 @@
+2026-08-20 17:31:21,005 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\build_index_returns_20260820.txt
+2026-08-20 17:31:21,005 INFO Loading constituent panel: C:\Users\rebec\Desktop\Tesi\data_final\universe\universe_constituent_panel_20260819.parquet
+2026-08-20 17:31:21,472 INFO Built 6683 daily index-return observations, 2000-01-03 00:00:00 to 2026-07-30 00:00:00
+2026-08-20 17:31:21,472 INFO Daily r_idx summary: mean=0.00069, std=0.01212, min=-0.1162 (2020-03-16 00:00:00), max=0.1198 (2008-10-13 00:00:00)
+2026-08-20 17:31:21,523 INFO Built 319 monthly realized-vol observations, 2000-01-31 00:00:00 to 2026-07-30 00:00:00. n_days per month: min=15, max=23
+2026-08-20 17:31:21,546 INFO Wrote C:\Users\rebec\Desktop\Tesi\data_final\physical_risk\index_returns_daily_20260820.csv
+2026-08-20 17:31:21,546 INFO Wrote C:\Users\rebec\Desktop\Tesi\data_final\physical_risk\realized_vol_monthly_20260820.csv

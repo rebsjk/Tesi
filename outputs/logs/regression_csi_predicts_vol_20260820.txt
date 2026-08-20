@@ -1,0 +1,31 @@
+2026-08-20 17:32:06,723 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\regression_csi_predicts_vol_20260820.txt
+2026-08-20 17:32:06,776 INFO Regression sample: 295 months, 2001-12-31 00:00:00 to 2026-06-30 00:00:00 (predicting RV in month t+1 from CSI_t, RV_t)
+2026-08-20 17:32:06,832 INFO 
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                rv_next   R-squared:                       0.416
+Model:                            OLS   Adj. R-squared:                  0.412
+Method:                 Least Squares   F-statistic:                     32.66
+Date:                Thu, 20 Aug 2026   Prob (F-statistic):           1.59e-13
+Time:                        17:32:06   Log-Likelihood:                 692.67
+No. Observations:                 295   AIC:                            -1379.
+Df Residuals:                     292   BIC:                            -1368.
+Df Model:                           2                                         
+Covariance Type:                  HAC                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0163      0.004      4.008      0.000       0.008       0.024
+csi_t          0.0003      0.001      0.415      0.678      -0.001       0.002
+rv_t           0.6427      0.097      6.601      0.000       0.452       0.834
+==============================================================================
+Omnibus:                      276.463   Durbin-Watson:                   2.065
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             8961.718
+Skew:                           3.725   Prob(JB):                         0.00
+Kurtosis:                      28.953   Cond. No.                         54.0
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity and autocorrelation robust (HAC) using 12 lags and without small sample correction
+2026-08-20 17:32:06,850 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\p_measure_csi_predicts_vol_20260820.csv
+2026-08-20 17:32:06,850 INFO R-squared: 0.4157, N: 295, HAC lags: 12
