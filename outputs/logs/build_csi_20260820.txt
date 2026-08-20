@@ -1,0 +1,6 @@
+2026-08-20 17:03:04,233 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\build_csi_20260820.txt
+2026-08-20 17:03:04,233 INFO CSI construction parameters: components=['hhi', 'cr_10', 'entropy_concentration'], weighting=equal, standardization=expanding z-score (ddof=1), burn_in_months=24 (see docs/methodology_notes/csi_construction.md 'Decision (2026-08-20)' and docs/variable_definitions/csi.md)
+2026-08-20 17:03:04,233 INFO Loading concentration panel: C:\Users\rebec\Desktop\Tesi\data_final\concentration\concentration_measures_monthly_20260820.csv
+2026-08-20 17:03:04,251 INFO Built 296 monthly CSI observations, 2001-12-31 00:00:00 to 2026-07-30 00:00:00 (23 months excluded by burn-in)
+2026-08-20 17:03:04,251 INFO CSI summary: mean=-0.0437, std=1.6252, min=-2.0179 (2005-07-29 00:00:00), max=3.6725 (2020-08-31 00:00:00)
+2026-08-20 17:03:04,258 INFO Wrote C:\Users\rebec\Desktop\Tesi\data_final\csi\csi_composite_monthly_20260820.csv
