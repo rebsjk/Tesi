@@ -1,0 +1,7 @@
+2026-08-20 15:57:09,693 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\build_concentration_panel_20260820.txt
+2026-08-20 15:57:09,693 INFO Loading constituent panel: C:\Users\rebec\Desktop\Tesi\data_final\universe\universe_constituent_panel_20260819.parquet
+2026-08-20 15:57:09,934 INFO 8 of 3324820 panel rows have a missing weight and are excluded from this build.
+2026-08-20 15:57:15,646 INFO Built 319 monthly observations, 2000-01-31 00:00:00 to 2026-07-30 00:00:00
+2026-08-20 15:57:15,649 INFO n_constituents range: 489 to 502 (median 497)
+2026-08-20 15:57:15,649 INFO No cohort-attrition events (every monthly top-k cohort member was still in the index at month-end for the whole sample).
+2026-08-20 15:57:15,656 INFO Wrote C:\Users\rebec\Desktop\Tesi\data_final\concentration\concentration_measures_monthly_20260820.csv
