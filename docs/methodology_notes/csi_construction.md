@@ -1,11 +1,12 @@
 # CSI construction methodology
 
-Status: **aggregation method decided (2026-08-20).** Composite CSI =
-equal-weight z-score average of `hhi`, `cr_10`, `entropy_concentration`
-— see "Collinearity check results and component selection" and the
-"Decision" block under "Aggregation choices under consideration" below
-for the full evidence and reasoning. State/regime classification
-(further down) is still open. This document still governs every
+Status: **aggregation and regime classification both decided (2026-08-20).**
+Composite CSI = equal-weight z-score average of `hhi`, `cr_10`,
+`entropy_concentration` — see "Collinearity check results and component
+selection" and the "Decision" block under "Aggregation choices under
+consideration" below. Regime classification = rolling 60-month tercile
+thresholds, no hysteresis — see the "Decision" block under "State /
+regime classification" below. This document still governs every
 downstream P-measure and Q-measure result's CSI version — update it again
 if the construction ever changes.
 
@@ -580,6 +581,90 @@ discrete classification (e.g. low / medium / high concentration). Candidates:
 the same reason as Option A above — get something point-in-time-correct
 and usable quickly, treat the Markov-switching alternative as phase-6
 robustness.
+
+### Decision (2026-08-20)
+
+**Thresholds:** terciles (33rd/67th percentile) — 3 regimes (low/medium/
+high), not a 2-way median split or asymmetric/tail-only cutoffs (e.g.
+20th/80th). A median split maximizes per-regime sample size but can't
+distinguish "moderately elevated" from "extreme," which matters for a
+thesis specifically about systemic-risk episodes. Asymmetric tail
+thresholds implicitly assume only the high tail is economically
+interesting, an assumption not yet tested against the Phase 4/5
+regressions — premature to bake into the classification itself. Terciles
+are the standard choice in the regime/systemic-risk literature and keep
+both options open. Median split and asymmetric thresholds are documented
+here as considered alternatives, deferred to Phase 6 robustness.
+
+**Window: rolling 60 months, not expanding — a different choice from the
+composite's own z-score, deliberately.** The composite's expanding
+window was chosen because its job was scale-normalization, indifferent
+to trailing-vs-expanding. Regime classification asks a different
+question — "is this month unusual relative to *recent* conditions," not
+"relative to the whole sample since 2000" — and an expanding
+classification on a series with CSI's persistent secular trend (declining
+to ~2014, then rising sharply through the Mag7 era) would make "high
+regime" nearly synonymous with "post-2019," which is a poor conditioning
+variable for Phase 4/6 regressions: if the regime dummy is almost
+collinear with calendar time, it becomes hard to attribute any P-vs-Q
+result to concentration specifically rather than to whatever else changed
+after 2019. A 60-month rolling window produces genuine transitions in and
+out of "high" over time (visible in the sanity-check plot below), giving
+the regime label real time-series variation to identify against. 60
+months also reuses the length already flagged as a Phase-6 rolling-window
+candidate for the composite itself (see above), rather than introducing a
+third arbitrary window length into this document.
+
+**Burn-in and GFC coverage (verified 2026-08-20).** The rolling window
+needs 60 CSI observations before the first tercile cutoff is defined; the
+CSI series itself starts 2001-12 (its own 24-month burn-in), so the first
+defined regime is **2006-11-30** — 2001-12 through 2006-10 (59 months)
+have no regime label, excluded rather than backfilled, per the
+anti-look-ahead rules below. Checked explicitly against the GFC window
+(2007-12 to 2009-06, the same NBER dates used throughout this project's
+sanity checks): **every GFC month has a defined regime**, with roughly 13
+months of margin between the end of burn-in and the start of the GFC —
+the burn-in choice does not compromise coverage of this project's primary
+reference stress episode. `src/csi/classify_regime.py` logs this check on
+every run and fails loudly (not silently) if a future re-pull or
+parameter change ever pushes burn-in past 2007-12.
+
+**Distribution is not a balanced 33/33/33 split, and that's expected, not
+a bug.** Across the 237 defined months: **high=149 (63%), medium=50
+(21%), low=38 (16%)** — see
+`data_final/csi/csi_regime_monthly_20260820.csv`,
+`outputs/figures/csi_regime_sanity_check_20260820.png`. This is a known
+property of trailing-quantile classification on a persistently trending
+series, not a computation error: because the rolling window at date `t`
+includes `t` itself, and CSI has spent most of the post-2006 sample on a
+multi-year upward trajectory (with only a sustained multi-year dip around
+2013-2015), a given month is disproportionately likely to sit in the
+upper tercile *of its own trailing window* whenever the series has been
+rising over the preceding ~5 years — in the limiting case of a purely
+monotonically rising series, every point is the maximum of its own
+window, so "high" would approach 100% by construction, not 33%. The
+tercile balance is only guaranteed to hold *within* any fixed 60-month
+window at a single point in time, not across the full classified series
+once the series has genuine multi-year momentum. This does not
+invalidate the classification — "high" here correctly means "elevated
+relative to the trailing 5 years," which is exactly the question this
+window choice was designed to ask (see above) — but the resulting label
+proportions should not be read as a balanced 3-way split, and this
+imbalance is itself indirect confirmation of how persistent the
+2019-2026 concentration trend has been.
+
+**Hysteresis: none in this first pass.** Raw threshold crossing, no
+buffer band or minimum-duration smoothing. `classify_regime.py` logs a
+flickering diagnostic (quick round-trip transitions, regime returns to
+its prior value within 2 months) on every run rather than assuming
+hysteresis is or isn't needed: the 2026-08-20 build found **7 flicker
+events out of 237 defined months (~3%)**, clustered mainly around 2007,
+2010-2011 (European sovereign debt stress), 2016, and 2025-2026 — low
+enough that a hysteresis band is not obviously required, but the
+diagnostic is logged every run specifically so this is an empirical
+call, not a guess, and so a Phase-6 hysteresis-band or Markov-switching
+revisit (both already noted as candidates above) has real data to react
+to rather than a hypothetical concern.
 
 ## Anti-look-ahead rules
 

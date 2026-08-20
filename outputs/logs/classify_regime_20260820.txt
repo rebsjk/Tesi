@@ -1,0 +1,15 @@
+2026-08-20 17:20:36,698 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\classify_regime_20260820.txt
+2026-08-20 17:20:36,698 INFO Regime classification parameters: window=rolling 60 months (inclusive of t), thresholds=tercile (33/67 pct), hysteresis=none
+2026-08-20 17:20:36,698 INFO Loading composite CSI: C:\Users\rebec\Desktop\Tesi\data_final\csi\csi_composite_monthly_20260820.csv
+2026-08-20 17:20:36,716 INFO 59 of 296 months have no regime (burn-in) — first defined regime: 2006-11-30 00:00:00
+2026-08-20 17:20:36,716 INFO GFC coverage check PASSED: every month in [2007-12-01, 2009-06-30] has a defined regime.
+2026-08-20 17:20:36,761 INFO Regime distribution (defined months only): {'high': 149, 'medium': 50, 'low': 38}
+2026-08-20 17:20:36,773 INFO Flickering diagnostic: 7 quick round-trip transition(s) (regime returns to its prior value within 2 months) out of 237 defined months.
+2026-08-20 17:20:36,773 INFO   {'left_date': '2007-02-28', 'returned_date': '2007-03-30', 'from_regime': 'medium', 'to_regime': 'low', 'months_away': 2}
+2026-08-20 17:20:36,773 INFO   {'left_date': '2010-12-31', 'returned_date': '2011-01-31', 'from_regime': 'medium', 'to_regime': 'low', 'months_away': 2}
+2026-08-20 17:20:36,773 INFO   {'left_date': '2011-01-31', 'returned_date': '2011-03-31', 'from_regime': 'low', 'to_regime': 'medium', 'months_away': 3}
+2026-08-20 17:20:36,773 INFO   {'left_date': '2016-11-30', 'returned_date': '2016-12-30', 'from_regime': 'high', 'to_regime': 'medium', 'months_away': 2}
+2026-08-20 17:20:36,773 INFO   {'left_date': '2025-03-31', 'returned_date': '2025-05-30', 'from_regime': 'high', 'to_regime': 'medium', 'months_away': 3}
+2026-08-20 17:20:36,775 INFO   {'left_date': '2026-02-27', 'returned_date': '2026-04-30', 'from_regime': 'high', 'to_regime': 'medium', 'months_away': 3}
+2026-08-20 17:20:36,775 INFO   {'left_date': '2026-04-30', 'returned_date': '2026-06-30', 'from_regime': 'medium', 'to_regime': 'high', 'months_away': 3}
+2026-08-20 17:20:36,779 INFO Wrote C:\Users\rebec\Desktop\Tesi\data_final\csi\csi_regime_monthly_20260820.csv
