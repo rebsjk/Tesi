@@ -1,0 +1,33 @@
+2026-08-20 17:38:51,723 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\regression_csi_regime_predicts_vol_20260820.txt
+2026-08-20 17:38:51,740 INFO Regression sample: 236 months, 2006-11-30 00:00:00 to 2026-06-30 00:00:00 (predicting RV in month t+1 from regime dummies at t, RV_t)
+2026-08-20 17:38:51,740 INFO Regime distribution in sample: {'high': 149, 'medium': 49, 'low': 38}
+2026-08-20 17:38:51,773 INFO 
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                rv_next   R-squared:                       0.399
+Model:                            OLS   Adj. R-squared:                  0.391
+Method:                 Least Squares   F-statistic:                     18.98
+Date:                Thu, 20 Aug 2026   Prob (F-statistic):           4.83e-11
+Time:                        17:38:51   Log-Likelihood:                 537.82
+No. Observations:                 236   AIC:                            -1068.
+Df Residuals:                     232   BIC:                            -1054.
+Df Model:                           3                                         
+Covariance Type:                  HAC                                         
+=================================================================================
+                    coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------
+const             0.0137      0.004      3.514      0.000       0.006       0.021
+regime_medium     0.0054      0.004      1.370      0.171      -0.002       0.013
+regime_high       0.0049      0.003      1.868      0.062      -0.000       0.010
+rv_t              0.6186      0.107      5.755      0.000       0.408       0.829
+==============================================================================
+Omnibus:                      223.921   Durbin-Watson:                   2.019
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             6187.701
+Skew:                           3.673   Prob(JB):                         0.00
+Kurtosis:                      26.985   Cond. No.                         38.9
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity and autocorrelation robust (HAC) using 12 lags and without small sample correction
+2026-08-20 17:38:51,782 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\p_measure_csi_regime_predicts_vol_20260820.csv
+2026-08-20 17:38:51,782 INFO R-squared: 0.3991, N: 236, HAC lags: 12
