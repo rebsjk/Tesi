@@ -85,6 +85,38 @@ parameter choice altogether.
 alongside the rolling-vs-expanding check above, and confirm the Phase-4/5
 conclusions are not sensitive to this choice.
 
+## Validation: the 2022 dip is price-driven, not composition-driven (2026-08-20)
+
+The sanity-check plot (`outputs/figures/csi_sanity_check_20260820.png`)
+shows a clear CSI decline through 2022. Checked directly against the
+underlying panel (`data_final/universe/`) whether this reflects mega-cap
+weights actually falling, or a change in which names occupy the top-10 /
+universe composition:
+
+- **Cohort overlap:** the top-10-by-weight cohort at 2021-12 start
+  (AAPL, MSFT, AMZN, TSLA, GOOG, GOOGL, NVDA, META, JPM, UNH) and at
+  2022-12 start (AAPL, MSFT, AMZN, GOOG, TSLA, GOOGL, UNH, JNJ, XOM, NVDA)
+  share **8 of 10 names**. Only META and JPM dropped out, replaced by
+  JNJ and XOM — itself an economically coherent rotation (mega-cap growth
+  → defensive healthcare / energy, matching 2022's well-documented
+  growth-to-value and energy-sector rotation), not arbitrary churn.
+- **Fixed-cohort price tracking:** holding the exact December-2021 top-10
+  names fixed (not re-selecting), their combined CRSP market cap
+  (`dlycap`) fell **-38.5%** from 2021-12-31 to 2022-12-30, while the
+  rest of the index fell only **-12.8%** over the same window (total
+  index -20.4%). The top-10 lost value at roughly **3x** the rate of the
+  rest of the market in dollar terms.
+
+**Conclusion:** the 2022 CSI decline is explained almost entirely by
+mega-cap names losing market value disproportionately (the 2022
+growth/tech de-rating), not by new names entering the universe or a
+reshuffling of the top-10 unrelated to price. This is exactly the
+behavior expected of a market-cap-weighted concentration measure and
+argues against the CSI being an artifact of constituent churn or
+membership-panel noise — a useful additional validation point alongside
+the Phase-2 external cross-check (`docs/variable_definitions/cr_k.md`)
+before closing Phase 3.
+
 ## Output
 
 - **Frequency:** monthly, month-end (inherited from
