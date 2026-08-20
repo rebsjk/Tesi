@@ -1,12 +1,13 @@
 # CSI construction methodology
 
-Status: **draft — aggregation method not yet finalized.** This note
-documents the candidate components and the decision that still needs to be
-made, plus the anti-look-ahead rules that apply regardless of which
-aggregation method is chosen. Update this file the moment the aggregation
-method is decided, and again if it changes — every downstream P-measure and
-Q-measure result will cite a CSI version, and that version is defined by
-this document.
+Status: **aggregation method decided (2026-08-20).** Composite CSI =
+equal-weight z-score average of `hhi`, `cr_10`, `entropy_concentration`
+— see "Collinearity check results and component selection" and the
+"Decision" block under "Aggregation choices under consideration" below
+for the full evidence and reasoning. State/regime classification
+(further down) is still open. This document still governs every
+downstream P-measure and Q-measure result's CSI version — update it again
+if the construction ever changes.
 
 ## What the CSI is
 
@@ -365,6 +366,112 @@ optional robustness idea:
    collinearity is an empirical property of the specific implementation, not
    a one-time theoretical judgment.
 
+## Collinearity check results and component selection (decided 2026-08-20)
+
+Ran the mandatory check above on the six Phase-2 candidates (`hhi`, `cr_5`,
+`cr_7`, `cr_10`, `effective_n`, `entropy_concentration`), monthly,
+2000-01 to 2026-07 (`data_final/concentration/concentration_measures_monthly_20260820.csv`,
+`src/concentration/collinearity_check.py`). `effective_n` is sign-flipped
+(negated) throughout so all six series agree on direction (↑ = more
+concentrated) before comparison. Threshold: **|r| > 0.90** (Pearson OR
+Spearman) — stricter than the 0.85 placeholder above. Rationale: two of
+the six candidates (`hhi`, `effective_n`) are related by mathematical
+identity, not empirical correlation (see below), so any reasonable
+threshold flags that pair regardless; for the other pairs, 0.90 sets the
+bar at "this is functionally the same information," not just "these
+usually move together" — a pair at, say, r=0.87 still leaves ~24% of
+variance unexplained by the other, which can matter for a variable later
+used to condition Phase 4/5 regressions.
+
+**Two bases, not one, computed on purpose.** A levels-only check risked
+overstating collinearity: 2000-2026 has a single dominant secular trend
+(concentration declining to ~2014, then rising sharply through the Mag7
+era). Correlating two long-trending series in levels inflates their
+correlation mechanically — they share a common nonstationary component —
+independent of whether they actually move together at a shorter,
+operationally relevant horizon. First-differencing (month-over-month
+change) removes the shared trend and tests genuine short-run comovement.
+Both bases are reported below, not one replacing the other, because they
+turned out to disagree in an economically informative way (see the
+three-cluster reading below) — full tables and the heatmap are in
+`outputs/tables/csi_component_correlation_{pearson,spearman}_{levels,diff}_20260820.csv`
+and `outputs/figures/csi_component_correlation_levels_vs_diff_20260820.png`.
+
+**Levels** (Pearson above diagonal, Spearman below):
+
+| | hhi | cr_5 | cr_7 | cr_10 | effective_n | entropy |
+|---|---|---|---|---|---|---|
+| **hhi** | — | 0.99 | 0.99 | 0.98 | 0.96 | 0.95 |
+| **cr_5** | 0.98 | — | 0.99 | 0.98 | 0.97 | 0.94 |
+| **cr_7** | 0.99 | 0.99 | — | 0.99 | 0.97 | 0.96 |
+| **cr_10** | 0.99 | 0.98 | 0.99 | — | 0.96 | 0.97 |
+| **effective_n** | 1.00 | 0.98 | 0.99 | 0.99 | — | 0.96 |
+| **entropy** | 0.98 | 0.95 | 0.96 | 0.97 | 0.98 | — |
+
+**First differences (MoM change)** (Pearson above diagonal, Spearman below):
+
+| | hhi | cr_5 | cr_7 | cr_10 | effective_n | entropy |
+|---|---|---|---|---|---|---|
+| **hhi** | — | 0.92 | 0.91 | 0.90 | 0.82 | 0.92 |
+| **cr_5** | 0.91 | — | 0.92 | 0.89 | 0.84 | 0.85 |
+| **cr_7** | 0.91 | 0.91 | — | 0.95 | 0.83 | 0.88 |
+| **cr_10** | 0.90 | 0.87 | 0.92 | — | 0.84 | 0.89 |
+| **effective_n** | 0.96 | 0.90 | 0.90 | 0.89 | — | 0.88 |
+| **entropy** | 0.94 | 0.83 | 0.85 | 0.86 | 0.92 | — |
+
+**Reading — three clusters, not one undifferentiated block.** All 14 of
+the non-deterministic pairs clear 0.90 on levels, which taken alone would
+suggest near-total redundancy and argue for Option A. Differencing
+changes this picture substantially — several pairs drop below threshold —
+and reveals structure:
+
+1. **`hhi` is the hub.** It stays correlated with essentially everything,
+   including on differences (0.90-0.94 with every `cr_k` and with
+   `entropy`). It doesn't cleanly separate from either the `cr_k` family
+   or `entropy` even once the shared trend is removed.
+2. **The `cr_k` family is internally redundant, especially at adjacent
+   `k`.** `cr_5`/`cr_7` and `cr_7`/`cr_10` stay high on differences
+   (0.91-0.95) — adjacent cutoffs share too many constituents to diverge
+   short-run. `cr_5`/`cr_10` (the two endpoints) is the one `cr_k` pair
+   that drops meaningfully on differences (0.87-0.89) — some real
+   short-run distinctness at the extremes, but not enough on its own to
+   justify keeping more than one `cr_k` in a parsimonious composite.
+3. **`entropy_concentration` carries short-run information the `cr_k`
+   family does not.** Its correlation with every `cr_k` falls below 0.90
+   on differences (0.83-0.89), a clean drop from 0.94-0.97 in levels —
+   the clearest confirmation in this check that entropy captures
+   something the top-k cutoffs miss, consistent with the theoretical
+   argument for including it in the first place (see "Candidate
+   components" above). It stays linked to `hhi` on differences (0.92/0.94)
+   — it behaves more like a whole-distribution measure (HHI's family)
+   than a top-k-threshold measure.
+
+**`effective_n` is a special case, not a fourth cluster.** In levels its
+near-1.0 correlation with `hhi` is not an empirical finding — `effective_n
+= 1/hhi` is a deterministic, monotonic transform, so knowing `hhi_t`
+determines `effective_n_t` exactly, for every `t`, by construction. The
+apparent "divergence" on differences (Pearson drops to 0.82, versus
+0.90+ for every other `hhi` pair) is **not genuine new information** —
+it is a mechanical artifact of the transform's changing local slope:
+since `d(1/x) = -dx/x²`, the same-sized change in `hhi` produces a
+change in `effective_n` whose magnitude depends on `hhi`'s *level* at
+that moment (large swings in `effective_n` per unit of `Δhhi` when `hhi`
+is small, small swings when `hhi` is large). This heteroskedastic,
+level-dependent local slope degrades a *linear* correlation measure
+(Pearson) on differences without reflecting any real additional
+economic content. The diagnostic that confirms this reading:
+**Spearman on differences stays at 0.96** — a monotonic transform
+preserves rank ordering almost exactly regardless of curvature, which is
+exactly what a mechanical-artifact explanation predicts and a
+genuine-new-information explanation would not (genuine new information
+would degrade the *rank* correlation too, not just the linear one).
+**Decision: `effective_n` is excluded from the composite** — including
+it alongside `hhi` would double-count the same information with a
+weight that implicitly shifts across the sample depending on `hhi`'s
+level, without adding real distinctness. It remains a reported
+diagnostic (`data_final/concentration/`), valued for its intuitive
+"equivalent equal-weight name count" framing, just not a composite input.
+
 ## Aggregation choices under consideration
 
 **Option A — single primary measure, others as robustness.**
@@ -372,7 +479,14 @@ Use one measure (e.g. HHI) as *the* CSI, and treat CR-k/effective-N/entropy
 purely as phase-6 robustness checks (does the P-vs-Q result survive if HHI
 is swapped for CR-10?). Simplest to defend, easiest to interpret, but
 discards information the other measures capture (e.g. entropy's tail
-sensitivity).
+sensitivity) — and the collinearity check above shows that sensitivity is
+real (entropy's differences correlate with `cr_k` at only 0.83-0.89, well
+below the redundancy threshold), so Option A alone would throw away a
+component demonstrated to carry distinct short-run information, not just
+a theoretically-motivated one. **Considered and set aside** for the
+primary construction for this reason — kept as the natural robustness
+comparison in Phase 6 (does the P-vs-Q result survive collapsing the CSI
+to HHI alone?).
 
 **Option B — z-score average.**
 Standardize each measure (using a trailing/expanding window, never the full
@@ -380,7 +494,13 @@ sample — see below) and average the standardized scores into one composite.
 Straightforward and transparent, but the averaging weights are implicitly
 equal across measures unless deliberately chosen otherwise, and equal
 weighting is itself an assumption that should be stated, not defaulted
-into silently.
+into silently. **Chosen — see decision below.** Equal-weighting is only
+safe here because the *input set* was curated first (one component per
+cluster identified above) — equal-weighting the full six-candidate set
+(or even all three `cr_k`) would let the redundant `cr_k` block
+implicitly dominate the composite (three near-duplicate votes vs. one
+each for `hhi`/`entropy`), which is exactly the failure mode a naive
+"more data is more information" approach to Option B would produce.
 
 **Option C — first principal component.**
 Fit PCA on the standardized measures and take the first component as the
@@ -388,15 +508,56 @@ CSI. Captures common variation efficiently, but with only ~5 candidate
 measures the "first PC" can be unstable/hard to interpret economically, and
 re-fitting PCA loadings on an expanding window (required for point-in-time
 validity — see below) adds real complexity for a possibly small
-interpretability gain over Option A/B. Worth reporting as a robustness
-cross-check even if not chosen as the primary construction method.
+interpretability gain over Option A/B. **Considered and deferred to Phase
+6.** PCA does not solve the redundancy problem by itself — the first PC
+maximizes variance explained, so it would still be pulled toward whatever
+block contributes the most shared variance (the `cr_k` family, per the
+check above) unless the input set is curated first, exactly as for Option
+B. Once curated (the same three components chosen for Option B), PCA is a
+natural robustness cross-check on the equal-weight choice, not an
+alternative that needs deciding now — reported in Phase 6.
 
-**Recommendation for the first implementation pass:** build Option A (HHI
-as the primary CSI) first, since it is the simplest to get point-in-time
-correct and gives phase 4/5 something concrete to condition on immediately.
-Implement Option B as the first robustness variant once phase 6 exists.
-Revisit Option C only if A and B disagree in a way that matters for the
-thesis's conclusion.
+### Decision (2026-08-20)
+
+**Component set:** `hhi`, `cr_10`, `entropy_concentration` — one
+representative per cluster identified in the collinearity check above.
+
+- **Why `cr_10` and not `cr_5`/`cr_7` as the `cr_k` representative:**
+  `cr_7` is itself the internal hub of the `cr_k` trio (correlated
+  0.91-0.95 with *both* `cr_5` and `cr_10` on differences) — the same
+  "correlated with everything, therefore least uniquely informative"
+  logic that applies to `hhi` among all six. Between the two more
+  mutually-distinct endpoints, `cr_10` is preferred over `cr_5` on two
+  further grounds: (a) it already has a clean external validation
+  (Phase 2, `docs/variable_definitions/cr_k.md` — 37.0% computed vs.
+  "over 37%" published, vs. `cr_7`'s messier reconciliation against the
+  informally-named "Magnificent 7" basket), and (b) spanning more names
+  makes it less sensitive to a single constituent's idiosyncratic
+  month-to-month move, more appropriate for a broad systemic-risk state
+  variable. `cr_5` and `cr_7` remain in the output as standalone
+  diagnostics, not composite inputs.
+- **Why `effective_n` is excluded:** see the dedicated discussion above
+  — deterministic identity with `hhi` in levels, and its apparent
+  differenced-series divergence is a curvature artifact of the `1/x`
+  transform (confirmed by differenced Spearman staying at 0.96),
+  not genuine new information.
+- **Weighting:** equal-weight z-score average (Option B), using a
+  trailing/expanding standardization window per the anti-look-ahead rules
+  below — safe here specifically because the input set is already
+  curated to one component per empirically-distinct cluster.
+- **PCA (Option C)** on the same three-component set: deferred to Phase 6
+  as a robustness cross-check on the equal-weight choice, not decided now.
+- **Alternatives considered:** a two-component composite (`hhi` +
+  `entropy_concentration`, dropping any `cr_k`) was the most
+  redundancy-minimal option but sacrifices the externally-validated,
+  literature-standard top-k number; dropping `hhi` entirely (`cr_10` +
+  `entropy_concentration`, on the grounds that `hhi` is the most
+  cross-correlated component of all six, even more than any single
+  `cr_k`) was judged statistically defensible but a poor choice for
+  thesis exposition, since HHI is the most standard, most expected
+  concentration measure for a reader/committee. Both are noted here so
+  the choice of `hhi + cr_10 + entropy_concentration` is traceable
+  against its alternatives, not just asserted.
 
 ## State / regime classification
 

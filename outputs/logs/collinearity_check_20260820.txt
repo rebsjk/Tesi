@@ -1,0 +1,95 @@
+2026-08-20 16:12:24,810 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\collinearity_check_20260820.txt
+2026-08-20 16:12:24,825 INFO Loaded 319 monthly observations, 2000-01-31 00:00:00 to 2026-07-30 00:00:00
+2026-08-20 16:12:24,830 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_pearson_20260820.csv
+2026-08-20 16:12:24,830 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_spearman_20260820.csv
+2026-08-20 16:12:25,786 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\figures\csi_component_correlation_20260820.png
+2026-08-20 16:12:25,786 INFO ======================================================================
+2026-08-20 16:12:25,786 INFO Threshold: |r| > 0.90 (Pearson OR Spearman)
+2026-08-20 16:12:25,786 INFO A priori deterministic exclusion (hhi / effective_n_flipped, effective_n = 1/hhi by construction — not an empirical finding):
+2026-08-20 16:12:25,786 INFO   hhi / effective_n_flipped: pearson r=0.9558
+2026-08-20 16:12:25,786 INFO   hhi / effective_n_flipped: spearman r=1.0000
+2026-08-20 16:12:25,786 INFO Empirical flags among the other 14 pairs (28 found):
+2026-08-20 16:12:25,786 INFO   hhi / cr_5: pearson r=0.9907
+2026-08-20 16:12:25,786 INFO   hhi / cr_7: pearson r=0.9915
+2026-08-20 16:12:25,786 INFO   hhi / cr_10: pearson r=0.9849
+2026-08-20 16:12:25,786 INFO   hhi / entropy_concentration: pearson r=0.9538
+2026-08-20 16:12:25,786 INFO   cr_5 / cr_7: pearson r=0.9946
+2026-08-20 16:12:25,786 INFO   cr_5 / cr_10: pearson r=0.9795
+2026-08-20 16:12:25,786 INFO   cr_5 / effective_n_flipped: pearson r=0.9676
+2026-08-20 16:12:25,786 INFO   cr_5 / entropy_concentration: pearson r=0.9388
+2026-08-20 16:12:25,786 INFO   cr_7 / cr_10: pearson r=0.9935
+2026-08-20 16:12:25,786 INFO   cr_7 / effective_n_flipped: pearson r=0.9712
+2026-08-20 16:12:25,786 INFO   cr_7 / entropy_concentration: pearson r=0.9588
+2026-08-20 16:12:25,786 INFO   cr_10 / effective_n_flipped: pearson r=0.9632
+2026-08-20 16:12:25,786 INFO   cr_10 / entropy_concentration: pearson r=0.9741
+2026-08-20 16:12:25,786 INFO   effective_n_flipped / entropy_concentration: pearson r=0.9563
+2026-08-20 16:12:25,786 INFO   hhi / cr_5: spearman r=0.9809
+2026-08-20 16:12:25,786 INFO   hhi / cr_7: spearman r=0.9875
+2026-08-20 16:12:25,786 INFO   hhi / cr_10: spearman r=0.9884
+2026-08-20 16:12:25,786 INFO   hhi / entropy_concentration: spearman r=0.9845
+2026-08-20 16:12:25,786 INFO   cr_5 / cr_7: spearman r=0.9930
+2026-08-20 16:12:25,786 INFO   cr_5 / cr_10: spearman r=0.9825
+2026-08-20 16:12:25,786 INFO   cr_5 / effective_n_flipped: spearman r=0.9809
+2026-08-20 16:12:25,786 INFO   cr_5 / entropy_concentration: spearman r=0.9490
+2026-08-20 16:12:25,786 INFO   cr_7 / cr_10: spearman r=0.9949
+2026-08-20 16:12:25,786 INFO   cr_7 / effective_n_flipped: spearman r=0.9875
+2026-08-20 16:12:25,786 INFO   cr_7 / entropy_concentration: spearman r=0.9640
+2026-08-20 16:12:25,786 INFO   cr_10 / effective_n_flipped: spearman r=0.9884
+2026-08-20 16:12:25,786 INFO   cr_10 / entropy_concentration: spearman r=0.9745
+2026-08-20 16:12:25,786 INFO   effective_n_flipped / entropy_concentration: spearman r=0.9845
+2026-08-20 16:21:43,484 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\collinearity_check_20260820.txt
+2026-08-20 16:21:43,532 INFO Loaded 319 monthly observations, 2000-01-31 00:00:00 to 2026-07-30 00:00:00
+2026-08-20 16:21:43,532 INFO First-differenced series: 318 observations (first month dropped, no prior diff)
+2026-08-20 16:21:43,539 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_pearson_levels_20260820.csv
+2026-08-20 16:21:43,542 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_spearman_levels_20260820.csv
+2026-08-20 16:21:43,543 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_pearson_diff_20260820.csv
+2026-08-20 16:21:43,545 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\csi_component_correlation_spearman_diff_20260820.csv
+2026-08-20 16:21:46,706 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\figures\csi_component_correlation_levels_vs_diff_20260820.png
+2026-08-20 16:21:46,711 INFO ======================================================================
+2026-08-20 16:21:46,711 INFO Threshold: |r| > 0.90 (Pearson OR Spearman), levels AND 1st differences
+2026-08-20 16:21:46,711 INFO A priori deterministic exclusion (hhi / effective_n_flipped, effective_n = 1/hhi by construction — not an empirical finding):
+2026-08-20 16:21:46,711 INFO   [levels] hhi / effective_n_flipped: pearson r=0.9558
+2026-08-20 16:21:46,711 INFO   [levels] hhi / effective_n_flipped: spearman r=1.0000
+2026-08-20 16:21:46,713 INFO   [diff] hhi / effective_n_flipped: spearman r=0.9629
+2026-08-20 16:21:46,713 INFO Empirical flags among the other 14 pairs (41 found across both bases):
+2026-08-20 16:21:46,713 INFO   [levels] hhi / cr_5: pearson r=0.9907
+2026-08-20 16:21:46,713 INFO   [levels] hhi / cr_7: pearson r=0.9915
+2026-08-20 16:21:46,713 INFO   [levels] hhi / cr_10: pearson r=0.9849
+2026-08-20 16:21:46,713 INFO   [levels] hhi / entropy_concentration: pearson r=0.9538
+2026-08-20 16:21:46,713 INFO   [levels] cr_5 / cr_7: pearson r=0.9946
+2026-08-20 16:21:46,713 INFO   [levels] cr_5 / cr_10: pearson r=0.9795
+2026-08-20 16:21:46,713 INFO   [levels] cr_5 / effective_n_flipped: pearson r=0.9676
+2026-08-20 16:21:46,713 INFO   [levels] cr_5 / entropy_concentration: pearson r=0.9388
+2026-08-20 16:21:46,713 INFO   [levels] cr_7 / cr_10: pearson r=0.9935
+2026-08-20 16:21:46,713 INFO   [levels] cr_7 / effective_n_flipped: pearson r=0.9712
+2026-08-20 16:21:46,715 INFO   [levels] cr_7 / entropy_concentration: pearson r=0.9588
+2026-08-20 16:21:46,715 INFO   [levels] cr_10 / effective_n_flipped: pearson r=0.9632
+2026-08-20 16:21:46,715 INFO   [levels] cr_10 / entropy_concentration: pearson r=0.9741
+2026-08-20 16:21:46,715 INFO   [levels] effective_n_flipped / entropy_concentration: pearson r=0.9563
+2026-08-20 16:21:46,715 INFO   [levels] hhi / cr_5: spearman r=0.9809
+2026-08-20 16:21:46,715 INFO   [levels] hhi / cr_7: spearman r=0.9875
+2026-08-20 16:21:46,715 INFO   [levels] hhi / cr_10: spearman r=0.9884
+2026-08-20 16:21:46,715 INFO   [levels] hhi / entropy_concentration: spearman r=0.9845
+2026-08-20 16:21:46,716 INFO   [levels] cr_5 / cr_7: spearman r=0.9930
+2026-08-20 16:21:46,716 INFO   [levels] cr_5 / cr_10: spearman r=0.9825
+2026-08-20 16:21:46,716 INFO   [levels] cr_5 / effective_n_flipped: spearman r=0.9809
+2026-08-20 16:21:46,716 INFO   [levels] cr_5 / entropy_concentration: spearman r=0.9490
+2026-08-20 16:21:46,717 INFO   [levels] cr_7 / cr_10: spearman r=0.9949
+2026-08-20 16:21:46,717 INFO   [levels] cr_7 / effective_n_flipped: spearman r=0.9875
+2026-08-20 16:21:46,717 INFO   [levels] cr_7 / entropy_concentration: spearman r=0.9640
+2026-08-20 16:21:46,717 INFO   [levels] cr_10 / effective_n_flipped: spearman r=0.9884
+2026-08-20 16:21:46,717 INFO   [levels] cr_10 / entropy_concentration: spearman r=0.9745
+2026-08-20 16:21:46,717 INFO   [levels] effective_n_flipped / entropy_concentration: spearman r=0.9845
+2026-08-20 16:21:46,717 INFO   [diff] hhi / cr_5: pearson r=0.9150
+2026-08-20 16:21:46,717 INFO   [diff] hhi / cr_7: pearson r=0.9111
+2026-08-20 16:21:46,717 INFO   [diff] hhi / entropy_concentration: pearson r=0.9212
+2026-08-20 16:21:46,719 INFO   [diff] cr_5 / cr_7: pearson r=0.9240
+2026-08-20 16:21:46,719 INFO   [diff] cr_7 / cr_10: pearson r=0.9455
+2026-08-20 16:21:46,719 INFO   [diff] hhi / cr_5: spearman r=0.9132
+2026-08-20 16:21:46,719 INFO   [diff] hhi / cr_7: spearman r=0.9111
+2026-08-20 16:21:46,719 INFO   [diff] hhi / cr_10: spearman r=0.9022
+2026-08-20 16:21:46,719 INFO   [diff] hhi / entropy_concentration: spearman r=0.9444
+2026-08-20 16:21:46,719 INFO   [diff] cr_5 / cr_7: spearman r=0.9138
+2026-08-20 16:21:46,719 INFO   [diff] cr_5 / effective_n_flipped: spearman r=0.9006
+2026-08-20 16:21:46,719 INFO   [diff] cr_7 / cr_10: spearman r=0.9243
+2026-08-20 16:21:46,719 INFO   [diff] effective_n_flipped / entropy_concentration: spearman r=0.9245
