@@ -1,6 +1,13 @@
 # CSI construction methodology
 
-Status: **aggregation and regime classification both decided (2026-08-20).**
+Status: **aggregation and regime classification both decided (2026-08-20);
+scope decision to expand beyond capital concentration recorded
+2026-08-24; risk concentration implemented and collinearity-checked
+2026-08-24, with two sub-decisions (multi-share-class treatment,
+negative-risk-contribution convention) reviewed and confirmed 2026-08-25
+after being reopened for explicit approval; composite-integration question
+reviewed 2026-08-27 — decided not to integrate for now, provisional, see
+below.**
 Composite CSI = equal-weight z-score average of `hhi`, `cr_10`,
 `entropy_concentration` — see "Collinearity check results and component
 selection" and the "Decision" block under "Aggregation choices under
@@ -9,6 +16,20 @@ thresholds, no hysteresis — see the "Decision" block under "State /
 regime classification" below. This document still governs every
 downstream P-measure and Q-measure result's CSI version — update it again
 if the construction ever changes.
+
+**This is currently a capital-concentration-only composite.** Risk
+concentration is now built, collinearity-checked, and reviewed for
+composite integration (see the "Risk concentration (variance-share)"
+section below, and "Risk concentration: integration status (reviewed
+2026-08-27)" specifically) — the reviewed decision was **not to fold it
+into the composite CSI formula for now**, a provisional choice with
+explicit reopening criteria, not a unilateral update to this document's
+"Decision (2026-08-20)" aggregation block. Return-space
+concentration and dependence concentration remain specified but not
+implemented, so Chapter One's four-dimensional CSI framing is still ahead
+of this pipeline. See `docs/methodology_notes/external_review_20260824.md`
+for the reasoning behind treating this as a scope target to complete
+(build the remaining dimensions) rather than a text mismatch to patch now.
 
 ## What the CSI is
 
@@ -174,7 +195,166 @@ the *same* estimated `Σ_t`, not two independently-chosen estimation windows —
 otherwise any difference between the two series could be an artifact of
 different covariance estimates rather than a genuine conceptual difference.
 
-### Risk concentration (variance-share)
+### Risk concentration (variance-share) — implemented 2026-08-24, two sub-decisions reviewed and confirmed 2026-08-25
+
+**Status: implemented, collinearity-checked, and — as of 2026-08-25 —
+fully reviewed** (two sub-decisions were initially resolved unilaterally
+on 2026-08-24 and had to be reopened for explicit review before being
+treated as settled; both are now confirmed, on different/stronger
+evidence than the first pass — see the two Decision entries below) in
+`src/concentration/covariance_estimation.py` +
+`src/concentration/risk_measures.py` +
+`src/concentration/build_risk_concentration_panel.py`. Full estimator
+design (window, subset, shrinkage target, point-in-time entrant handling,
+multi-share-class treatment) is in the dedicated note
+`docs/methodology_notes/risk_concentration_covariance_estimation.md`, not
+inlined here — same reasoning as splitting out
+`index_weight_construction.md`. Measure definitions, sanity checks, and
+collinearity-check results are in
+`docs/variable_definitions/risk_concentration.md`. Summary of the
+decisions actually made, since the text below (originally written before
+implementation) specified the concept but not every parameter:
+
+- **Window: 252 trading days (rolling), not the "60-90 day" figure this
+  document mentions below** — that figure was never a decision for this
+  specific use (verified: no such decision block exists), and does not
+  carry over cleanly given the T-vs-N invertibility problem this specific
+  estimation faces. See the estimation note for the full argument.
+- **Subset: top-100, as recommended below** — confirmed, T/N ≈ 2.5.
+- **Shrinkage: Ledoit-Wolf, constant-correlation target, implemented
+  manually** — NOT `sklearn.covariance.LedoitWolf`, which implements a
+  *different* Ledoit-Wolf paper (identity-matrix target). This distinction
+  was not anticipated when this document was first drafted; see the
+  estimation note for why it matters economically, not just formally.
+- **Measures built: `risk_share_top5/7/10`, `n_eff_risk`, and
+  `risk_entropy`** (a third measure, added by analogy to
+  `entropy_concentration`'s Phase-2 result — not in this document's
+  original two-measure spec below).
+
+**Decision (implemented 2026-08-24, confirmed after review 2026-08-25):
+multi-share-class entities (GOOGL/GOOG) kept as separate permnos, no
+aggregation.** Full analysis — verbatim `cr_k.md` precedent, confirmation
+that precedent never addressed covariance, a full 147-month population
+test of the shrinkage-intensity effect (not the 17-month convenience
+sample the first pass used), and the mechanism behind the effect's sign —
+in `risk_concentration_covariance_estimation.md`, "Multi-share-class
+entities (GOOGL/GOOG) — reviewed decision". Two arguments, kept separate:
+design consistency with capital concentration's already-frozen CR-k
+treatment (a choice), and the isolated redundancy effect on shrinkage
+intensity being small in magnitude throughout (a measurement, std 0.22pp /
+max 0.76pp of 147 months, once an unrelated marginal-name-substitution
+confound is controlled for) — its direction is not stable across the full
+sample (one calendar year, 2018, consistently reverses the sign found in
+the rest of the period; formal significance tests and the year-by-year
+breakdown are in the estimation note), but the magnitude stays small
+enough in every annual sub-period that this does not change the decision.
+
+**Decision (implemented 2026-08-24, confirmed after review 2026-08-25):
+negative Euler risk contributions clipped to zero in `risk_entropy`
+only.** Full distribution (98 of ~30,000 name-month observations,
+episodic not monotonic — corrected from an initial mischaracterization as
+"a rising cluster"), the three-convention comparison, and the explicit
+note that this choice does not affect `n_eff_risk` (sign is erased by
+squaring) are in `docs/variable_definitions/risk_concentration.md`,
+"Negative risk contributions". The ~15% relative sensitivity to convention
+choice in the most recent, most-affected months (2026-04 to 2026-07) is
+flagged as a Phase-6 robustness item, not resolved by this decision.
+
+**Not yet done:** the Phase-6 robustness grid (window/subset/shrinkage-target
+sensitivity, plus the two Phase-6 items flagged above) is planned but not
+run. Composite-CSI integration was reviewed on 2026-08-27 — see immediately
+below, not still an open item in the sense implied here previously.
+
+### Risk concentration: integration status (reviewed 2026-08-27)
+
+**This section documents the outcome of a review and may be updated or
+superseded in the future without needing to reopen the construction
+sections above.** It records why risk concentration, though fully built
+and collinearity-checked, is not currently part of the composite CSI
+formula — a deliberate, reversible decision, not an omission or
+unfinished work.
+
+**Internal collinearity check (Fase 1).** Pairwise Pearson/Spearman
+correlations among the five candidates (`risk_share_top5/7/10`,
+`n_eff_risk`, `risk_entropy`), on levels and month-over-month differences,
+n=296 (2001-12 to 2026-07). Levels are almost uniformly high (mostly >0.94
+Pearson), but — per this document's own established discipline that
+differences, not levels, are the decisive redundancy test — **no pair
+exceeds the 0.90 threshold on differences**. One pair, `n_eff_risk_flipped`/
+`risk_entropy`, is borderline on the rank-based test (Spearman diff=0.878)
+while comfortably below threshold on the linear test (Pearson diff=0.743) —
+flagged as a genuine, isolated caution, not generalized to the other four
+pairs. **Reading: no netto internal redundancy.** Full matrices:
+`outputs/tables/risk_concentration_internal_correlation_*_20260824.csv`.
+
+**External collinearity check (Fase 2).** Same five candidates against
+`hhi`, `cr_10`, `entropy_concentration`, and `csi`, full-sample and split
+into three sub-periods (pre-2010, 2010-2019, 2020-2026). On differences —
+full sample and every sub-period — the maximum correlation across all 20
+risk-vs-capital pairs is 0.647, well below threshold. On levels, a handful
+of pairs exceed 0.90, but all are borderline (0.90-0.93, none above 0.95)
+and none recurs across more than one sub-period for the same pair.
+**Reading: risk concentration is not a transformation of capital
+concentration.** One genuine drift, not resolved here: the differenced
+correlation between `n_eff_risk_flipped`/`risk_entropy` and `csi` rises
+across sub-periods (~0.52-0.57 pre-2010 to ~0.60-0.65 Spearman in
+2020-2026) — still under threshold, but a real increase in short-run
+co-movement through the Mag7/AI era, **carried forward as a Phase-6
+robustness item**, not as redundancy. Full-sample matrices:
+`outputs/tables/risk_concentration_cross_dimension_correlation_*_20260824.csv`;
+complete sub-period matrices (Pearson/Spearman, levels/diff, all three
+windows):
+`outputs/tables/risk_concentration_cross_dimension_correlation_*_{pre2010,2010_2019,2020_2026}_20260825.csv`.
+(These sub-period matrices and the netto/borderline distinction above are
+from the 2026-08-27 review session; `risk_concentration.md`'s own
+"Collinearity check" section still documents only the 2026-08-24
+full-sample run and has not been updated to fold in either.)
+
+**Exploratory incremental-predictive-power check (not a formal Phase-4
+model).** Tested whether risk concentration adds predictive power for
+next-month realized volatility beyond the capital-only CSI, in both
+existing Phase-4 specifications (`p_measures.md`): the continuous model and
+the regime-dummy model, each of the five candidates individually plus an
+equal-weight z-score composite (18 models total). **Result: null in both
+specifications.** The one marginal exception found (`n_eff_risk_flipped`,
+p=0.048, continuous model, only in combination with `csi_t`) does not
+survive excluding the 5-month COVID window (2020-02 to 2020-06): p rises to
+0.26-0.28 at every HAC lag tested (6/12/18) — a leverage artifact, not a
+genuine relationship. Code: `src/physical_risk/risk_concentration_
+incremental_power_check.py`, `..._pt2.py`. Not point-in-time-safe (full-
+sample z-scoring), exploratory only, one outcome variable at one horizon.
+
+#### Decision (2026-08-27): not integrated into the composite CSI — reviewed, provisional, not a rejection
+
+**Component set unchanged:** `hhi`, `cr_10`, `entropy_concentration`. Risk
+concentration remains built, validated, and collinearity-checked, but is
+not added to the CSI formula.
+
+**Why:** of the four alternatives evaluated (no integration; two-family
+z-score average; extend the single composite to four components; a
+standalone risk-concentration sub-index), none is currently supported by a
+demonstrated empirical benefit large enough to justify its cost — the
+statistical distinctness from capital concentration is confirmed, but the
+one direct test of predictive value found nothing, while every direct-
+integration option would retroactively change the CSI series already
+behind the written Phase-4 results.
+
+**A preliminary, scope-limited choice, not a closed one.** Reconsider when:
+return-space and/or dependence concentration are built and checked to the
+same standard; another P-measure outcome (tail severity, drawdown) is
+tested; the Q-measure side exists. If reopened, a standalone risk-
+concentration sub-index (its own aggregation across the five candidates,
+combination with capital concentration decided separately) is the
+preferred starting alternative over folding risk concentration directly
+into the existing three-component composite — none of the five candidates
+is empirically redundant enough (per the collinearity check above) to
+justify picking a single representative the way `cr_10` was chosen over
+`cr_5`/`cr_7` in the original check.
+
+The rest of this subsection (below) is preserved as originally drafted —
+the pre-implementation concept and formulas — since it is still the
+accurate definition of what was built; only the parameter choices above
+were left open at the time and are now resolved as noted.
 
 Definition follows Tasitsiomi and Noguer i Alonso's formalization directly
 (their Section 3.2, "risk concentration"), since it is already precise and
@@ -245,6 +425,18 @@ return-space vs. capital concentration:
   still be highly correlated in practice despite being conceptually distinct.
 - **dependence_concentration vs. risk_share_topk** — expected to be more
   distinct per the argument above, but only an empirical test confirms it.
+
+**Risk-concentration leg run 2026-08-24** (`risk_share_top10` vs. `cr_10`
+and the full risk-vs-capital cross-check): on differences, the maximum
+correlation across all 20 risk-x-capital pairs is **0.537** (well below
+the 0.90 threshold), and `risk_share_top10` vs. `cr_10` specifically comes
+in at 0.369/0.382 (Pearson/Spearman) — the "still highly correlated in
+practice" concern this document raised is **not borne out empirically**
+at this specification. Full results and the composite-integration
+decision (deferred) are in
+`docs/variable_definitions/risk_concentration.md`. The
+`dependence_concentration` leg above remains untested — that measure is
+not yet implemented.
 
 ## Return-space concentration (candidate additional dimension)
 

@@ -1,0 +1,48 @@
+2026-08-24 19:43:26,661 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\risk_concentration_collinearity_check_20260824.txt
+2026-08-24 19:43:26,683 INFO Merged 296 monthly observations, 2001-12-31 00:00:00 to 2026-07-30 00:00:00
+2026-08-24 19:43:26,694 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_internal_correlation_pearson_levels_20260824.csv
+2026-08-24 19:43:26,694 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_internal_correlation_spearman_levels_20260824.csv
+2026-08-24 19:43:26,694 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_internal_correlation_pearson_diff_20260824.csv
+2026-08-24 19:43:26,699 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_internal_correlation_spearman_diff_20260824.csv
+2026-08-24 19:43:29,825 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\figures\risk_concentration_internal_collinearity_20260824.png
+2026-08-24 19:43:29,834 INFO ======================================================================
+2026-08-24 19:43:29,834 INFO [internal] Threshold: |r| > 0.90 (Pearson OR Spearman), levels AND 1st differences
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / risk_share_top7: pearson r=0.9897
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / risk_share_top10: pearson r=0.9703
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / n_eff_risk_flipped: pearson r=0.9469
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / risk_entropy: pearson r=0.9493
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top7 / risk_share_top10: pearson r=0.9869
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top7 / n_eff_risk_flipped: pearson r=0.9509
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top7 / risk_entropy: pearson r=0.9654
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top10 / n_eff_risk_flipped: pearson r=0.9443
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top10 / risk_entropy: pearson r=0.9807
+2026-08-24 19:43:29,834 INFO   [levels] n_eff_risk_flipped / risk_entropy: pearson r=0.9420
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / risk_share_top7: spearman r=0.9813
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top5 / risk_share_top10: spearman r=0.9530
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top7 / risk_share_top10: spearman r=0.9666
+2026-08-24 19:43:29,834 INFO   [levels] risk_share_top10 / n_eff_risk_flipped: spearman r=0.9175
+2026-08-24 19:43:29,834 INFO   [levels] n_eff_risk_flipped / risk_entropy: spearman r=0.9886
+2026-08-24 19:43:29,857 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_cross_dimension_correlation_pearson_levels_20260824.csv
+2026-08-24 19:43:29,899 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_cross_dimension_correlation_spearman_levels_20260824.csv
+2026-08-24 19:43:29,903 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_cross_dimension_correlation_pearson_diff_20260824.csv
+2026-08-24 19:43:29,909 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\tables\risk_concentration_cross_dimension_correlation_spearman_diff_20260824.csv
+2026-08-24 19:43:38,166 INFO Wrote C:\Users\rebec\Desktop\Tesi\outputs\figures\risk_concentration_cross_dimension_collinearity_20260824.png
+2026-08-24 19:43:38,166 INFO ======================================================================
+2026-08-24 19:43:38,166 INFO Cross-dimension flags (risk-concentration candidate vs. capital-concentration/CSI series):
+2026-08-24 19:43:38,166 INFO   [levels] risk_share_top5 / hhi: pearson r=0.9127
+2026-08-24 19:43:38,166 INFO   [levels] risk_share_top5 / csi: pearson r=0.9060
+2026-08-24 19:43:38,166 INFO   [levels] risk_share_top7 / hhi: pearson r=0.9327
+2026-08-24 19:43:38,168 INFO   [levels] risk_share_top7 / cr_10: pearson r=0.9189
+2026-08-24 19:43:38,168 INFO   [levels] risk_share_top10 / hhi: pearson r=0.9399
+2026-08-24 19:43:38,168 INFO   [levels] risk_share_top10 / cr_10: pearson r=0.9352
+2026-08-24 19:43:38,168 INFO   [levels] risk_share_top10 / entropy_concentration: pearson r=0.9158
+2026-08-24 19:43:38,168 INFO   [levels] n_eff_risk_flipped / hhi: pearson r=0.9131
+2026-08-24 19:43:38,168 INFO   [levels] n_eff_risk_flipped / cr_10: pearson r=0.9033
+2026-08-24 19:43:38,168 INFO   [levels] n_eff_risk_flipped / csi: pearson r=0.9232
+2026-08-24 19:43:38,168 INFO   [levels] risk_entropy / hhi: pearson r=0.9472
+2026-08-24 19:43:38,168 INFO   [levels] risk_entropy / cr_10: pearson r=0.9359
+2026-08-24 19:43:38,168 INFO   [levels] risk_entropy / entropy_concentration: pearson r=0.9245
+2026-08-24 19:43:38,168 INFO   [levels] n_eff_risk_flipped / hhi: spearman r=0.9147
+2026-08-24 19:43:38,170 INFO   [levels] n_eff_risk_flipped / entropy_concentration: spearman r=0.9044
+2026-08-24 19:43:38,170 INFO   [levels] risk_entropy / hhi: spearman r=0.9262
+2026-08-24 19:43:38,170 INFO   [levels] risk_entropy / entropy_concentration: spearman r=0.9214

@@ -1,0 +1,5 @@
+2026-08-19 18:47:10,798 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\build_constituent_panel_20260819T164710Z.log
+2026-08-19 18:47:10,801 INFO membership: C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_membership_clean_20260819.csv
+2026-08-19 18:47:10,801 INFO returns:    C:\Users\rebec\Desktop\Tesi\data_interim\crsp\crsp_sp500_returns_clean_20260819.csv
+2026-08-19 18:47:18,964 INFO crosswalk:  none — entity_id treated as permno directly (CRSP-native)
+2026-08-19 18:47:19,381 INFO 29 gaps between consecutive membership intervals (median 1854.0 days, 0 of them exactly 1 day). A large count of 1-day gaps suggests end_date is being supplied as inclusive rather than exclusive — see the interval boundary convention in the module docstring.

@@ -1,0 +1,376 @@
+
+❯ Voglio che tu faccia da supervisore esterno sulla mia tesi, non da co‑autore di codice.
+  >
+
+  Contesto:
+
+  Sto lavorando a una tesi di PhD in finanza su “Market concentration as a structural state variable for systemic risk and option‑implied tail premia” (CSI come state variable P/Q).
+  Memory
+
+  Tutto il progetto è nella cartella Tesi (questa sessione Claude Code è già aperta lì): voglio che tu usi i file esistenti (in particolare docs/methodology_notes/csi_construction.md, docs/methodology_notes/p_measures.md, CLAUDE.md, e qualsiasi altro file rilevante) per capire struttura, domanda di ricerca e metodologia.
+  >
+  Cosa voglio da te:
+
+  Analisi della struttura e della domanda di ricerca
+
+  Leggi i doc di metodologia (CSI, P‑measures, e se serve Q‑measures) e il blueprint generale.
+
+  Dimmi se la struttura della tesi (capitoli, flusso CSI → P → Q) è coerente con la domanda di ricerca dichiarata, o se vedi problemi di framing (troppo ambiziosa, troppo vaga, mal posizionata rispetto alla letteratura).
+
+  Review metodologica del CSI e del suo uso
+
+  Valuta se la costruzione del CSI (componenti, composito, regime rolling) ha senso e se è allineata con il ruolo che gli do (state variable strutturale, non solo HHI).
+
+  Cerca errori/sviste/rischi di identificazione: punti in cui potrei stare misurando “calendar time” invece di “concentration”, confondendo trend, o usando il CSI in modo incoerente tra P e Q.
+
+  Interpretazione dei risultati P‑measure finora
+
+  Nei file di Phase 4 ho i primi risultati: sul P‑measure realized volatility a 1 mese il CSI continuo esce nullo, il modello a regimi dà solo un β_high marginale (p≈0.06).
+
+  Dimmi come interpreteresti tu questo: è solo un problema di specifica locale (variabile dipendente, orizzonte, non‑linearità) o ti suggerisce di ripensare qualcosa nella domanda di ricerca / nel ruolo del CSI?
+
+  Raccomandazioni concrete
+
+  Sulla base di tutto, dammi una lista ragionata di 3–5 cambiamenti/miglioramenti prioritari (nella struttura della tesi, nella definizione del CSI, nelle specifiche econometriche P/Q) che aumenterebbero la solidità e la leggibilità del lavoro.
+
+  >
+
+  Importante: non voglio solo che mi dici “cosa fare”, ma ì perché, voglio vedere i trade off (pro/contro delle alternative), anche se la tua raccomandazione è chiara.
+
+
+Review esterna — CSI thesis, stato al 2026‑08‑20
+
+Ho letto Chapter One, csi_construction.md, csi.md, p_measures..md, membership_interval_convention.md, e gli script effettivi
+(build_csi.py, classify_regime.py, le due regressioni Phase 4)o su questo, non su quello che i documenti dicono di voler fare
+ma su cosa è effettivamente costruito.
+
+---
+
+1. Struttura e domanda di ricerca
+
+La cornice concettuale di Chapter One è solida e la posizioni-letteratura è buona: il ponte granular hypothesis → systemic risk (CoVaR/SRISK) → tail premia in opzioni (Andersen-Fusari-Todorov, VRP di Bollerslev-Tauchen-Zhou) è una combinazione non banale, e le tre RQ sono ben distinte l'una dall'altra (quando la concentrazione conta in P, tramite quale canale — media o coda -, e se c'è un premio per la coda in Q oltre al VRP). Non vedo un problema di
+framing "troppo vago". Il rischio che vedo è opposto: il capitolo promette più di quanto la pipeline attuale costruisca, e questo è il problema più serio di tutta la review, quindi lo tratto per primo prima di arrivare al CSI in dettaglio.
+
+Il gap concreto. Chapter One (par. 9-15) argomenta esplicitamente che le misure basate solo sui pesi ("weight-based statistics... are not sufficient...
+remain silent about the mechanism of risk aggregation") sono insufficienti, e presenta il CSI come un oggetto a quattro dimensioni: capital, risk, return-space, dependence concentration. Questo è il "contributo distintivo" dichiarato al par. 31 ("The CSI explicitly separates capital concentration, risk concentration, return-space concentration, and dependence concentration").
+
+Quello che è effettivamente stato deciso e costruito in csi_construction.md/csi.md (decisione del 2026-08-20) è: csi_t = mean(z_hhi, z_cr_10, z_entropy) —
+tre misure, tutte e tre capital-concentration (pesi di mercato, nessuna informazione di covarianza o di comovimento). Risk concentration e dependence concentration sono definite con cura in csi_construction.md (inclusa la caveat T-vs-N, Ledoit-Wolf, la scelta del subset top-100) ma non sono implementate
+in src/concentration/measures.py. Return-space concentration è definita ma nemmeno quella è implementata.
+
+Quindi oggi il CSI è, nei fatti, esattamente l'oggetto che il capitolo introduttivo argomenta essere insufficiente: un composito di misure basate sui pesi. È più robusto di un semplice HHI grezzo — il collinearity check che ha portato a scegliere hhi+cr_10+entropy (invece delle sei candidate) è fatto bene, con la distinzione livelli-vs-differenze che evita di gonfiare le correlazioni per trend condiviso — ma resta concettualmente nella stessa famiglia
+di misura, non un salto verso "risk aggregation mechanism" come promesso.
+
+Perché è un problema e non solo un dettaglio di sequenza. Non è un problema che a fase 4 non sia ancora tutto pronto — è normale in un build-order incrementale. Il problema è che il Chapter One, così com'è, farebbe una promessa che il committee leggerebbe come già mantenuta ("the CSI explicitly separates..."), mentre il dato empirico dietro dice altro. Se il capitolo introduttivo venisse letto per primo e poi il Chapter Three mostra un composito a
+tre misure di capital concentration, è il tipo di discrepanza  che un revisore nota subito e che mina la credibilità del resto.
+
+Due strade, con trade-off reali:
+
+- (A) Riallineare il testo alla pipeline attuale. Riscrivere Chapter 1 per presentare CSI v1 esplicitamente come capital-concentration composite (comunque più robusto di HHI solo), e presentare risk/return-space/dependence concentration come estensioni pianificate (Phase 6 o capitoli successivi), non come pilastri già integrati nel CSI primario.
+  Pro: onestà immediata, zero rischio di sovra-promessa, non aggiunge lavoro.
+Contro: indebolisce la claim di originalità del capitolo — un composito a tre misure di capital concentration, per quanto ben costruito, è più vicino alla letteratura esistente (S&P Global, index research) di quanto il framing attuale suggerisca.
+- (B) Costruire almeno risk concentration prima di consolidare il testo. csi_construction.md ha già risolto il problema difficile (T-vs-N, subset top-100, Ledoit-Wolf) — risk concentration (risk_share_topk, N_eff_risk) è concettualmente il pezzo più economico da aggiungere perché riusa la stessa Σ_t che serviva comunque per dependence concentration. Aggiungerla come quarta componente (o come CSI a 4 misure con weighting da rivalutare) manterrebbe fede alla claim del capitolo.
+Pro: il contributo metodologico dichiarato diventa reale, non solo promesso.
+Contro: costo di implementazione reale (stima Σ_t point-in-time, re-fit espandente/rolling, nuovo collinearity check tra risk_share_topk e cr_10 - già previsto proprio in csi_construction.md), e rischia di ritardare Phase 4/5 che sono il cuore del contributo empirico.
+
+La mia raccomandazione, tenendo conto che non conosco la vostra scadenza: fate (A) subito (costa un pomeriggio, elimina un rischio di credibilità concreto), e trattate (B) come una decisione separata da prendere in base al tempo residuo — non bloccante per procedere con Phase 4/5. Non fatele insieme "per abitudine": sono due interventi indipendenti con costi molto diversi.
+
+Il resto della struttura (flusso CSI → P → Q → integrazione, mappatura sui capitoli 2-6) è coerente e ben sequenziato — nessun altro problema strutturale di rilievo.
+
+---
+
+2. Review metodologica del CSI
+
+La qualità di esecuzione qui è sopra la media che vedo di solito in questo tipo di lavoro - vale la pena dirlo esplicitamente prima delle critiche: la distinzione anchor-vs-reselection nel top-k, la gestione esplicita della direzionalità (effective_n invertito), il collinearity check su livelli e differenze con soglia dichiarata e giustificata, il trattamento dell'identià deterministica hhi/effective_n (confermata correttamente via Spearman-su-differenze invece di fermarsi al Pearson), il burn-in distinto per composito (24 mesi, expanding) vs regime (60 mesi, rolling) con motivazione esplicita del perché sono scelte diverse — questo è lavoro econometrico curato, non superficiale. Lo dico perché nel punto successivo trovo un vero problema di identificazione, e voglio che sia chiaro che non è un problema di sciatteria ma un'asimmetria di design che si può correggere.
+
+Il rischio "calendar time vs concentration" — dove lo vedo concretamente
+
+Avete già pensato a questo rischio e lo avete risolto per il regime, non per il composito continuo. La documentazione in classify_regime.py è esplicita: hanno scelto una finestra rolling di 60 mesi (non expanding) proprio perché "an expanding classification... would make 'high regime' nearly synonymous with 'post-2019'... near-collinear with a calendar-time trend." Ottimo - è esattamente il ragionamento giusto.
+
+Ma il composito continuo (build_csi.py, expanding_zscore) usa una finestra expanding, motivata in csi.md con "the z-score's job here is purely to bring three differently-scaled series onto a comparable scale... not to characterize the current regime." Il problema: nella regressione Model 1 (RV_{t+1} = α +
+β·CSI_t + γ·RV_t + ε), CSI_t è usato per caratterizzare lo stato corrente - è esattamente l'uso che csi.md dice non essere il suo scopo. Lo z-score expanding di una serie con "pronounced secular trend" (parole vostre) resta esso stesso fortemente trend dominato: normalizzare su tutta la storia dal 2000 a oggi non rimuove il trend, lo confronta solo su scala diversa.
+
+Questo crea un'asimmetria concreta tra Model 1 e Model 2 che non è quella che il testo attuale suggerisce. p_measures.md interpreta il fatto che il modello a regimi (p=0.062) batta il modello continuo (p=0.68) come evidenza di non linearità ("the nonlinear/regime specification is telling a materially
+different... story"). Ma c'è una spiegazione alternativa, altrettanto plausibile e più economica: il regime è costruito per essere relativo alla finestra rolling di 5 anni (quindi già "detrended" per costruzione), mentre il CSI continuo non lo è. La differenza osservata potrebbe riflettere detrending, non
+non-linearità — due letture con implicazioni molto diverse per la tesi.
+
+Test concreto, a basso costo, che risolverebbe l'ambiguità: ricostruire una versione "detrended" del CSI continuo — ad es. csi_t - rolling_mean_60m(csi_t), o il rank percentile nella stessa finestra rolling di 60 mesi usata per il regime — e ristimare Model 1 con questa versione al posto del CSI expanding-z. Se il coefficiente diventa significativo con la versione detrended, la storia è "il CSI conta, ma solo al netto del trend"
+(interessante, e diverso da "serve una soglia"). Se resta nullo anche detrended, allora la lettura "non-linearità/regime" del documento attuale è più credibile. Così com'è ora, il confronto Model 1 vs Model 2 confonde due manipolazioni contemporaneamente (continuo→discreto e expanding→rolling), quindi non isola quale delle due produce la differenza.
+
+Perché non è solo un dettaglio tecnico: se la spiegazione vera è "detrending", allora il vostro prossimo passo dovrebbe essere ricostruire il composito su base rolling (già previsto come Phase-6 robustness in csi.md — "rolling window (36, 60, 120 months)... reported as a robustness cross-check"), non
+necessariamente aggiungere quantile regression o local projections come extension separate. Vale la pena promuovere quel robustness check da "Phase 6 eventuale" a "prossimo passo prioritario", perché risponde direttamente alla domanda che vi siete posti.
+
+Un secondo rischio di identificazione, non ancora affrontato in p_measures.md
+
+Entrambe le variabili — CSI e RV — sono descritte nei vostri stessi documenti come "strongly persistent". Una regressione predittiva con un regressore fortemente persistente (quasi-trend, non stazionario nel senso classico) su un orizzonte breve è il caso da manuale in cui gli standard error robusti-HAC
+possono sottostimare l'incertezza reale (il problema è imparentato con quello di Stambaugh 1999 sulle regressioni predittive con regressori persistenti — non identico perché qui il regressore non è un rapporto di valutazione né la variabie dipendente è un rendimento, ma la logica di fondo, coefficiente di persistenza alto + errori potenzialmente correlati col regressore, si applica). Non sto dicendo che il p=0.062 sia spurio — sto dicendo che non lo sapete ancora, perché non è stato testato. Un bootstrap a blocchi (block bootstrap sui residui, rispettando l'autocorrelazione mensile) o una simulazione Monte
+Carlo sotto l'ipotesi nulla che generi CSI sintetico con la stessa persistenza osservata darebbe una fascia di confidenza più credibile di quella asintotica-HAC, specialmente per un p-value già borderline come 0.062.
+
+Trade-off: è un lavoro extra reale (non enorme — un block boot su 235-295 osservazioni mensili è dell'ordine di minuti di calcolo, ma richiede scrivere il codice e pensarci con cura). Ma dato che il risultato marginale del modello a regimi è probabilmente il punto più citato nel capitolo 4 quando lo scriverete, vale la pena blindarlo prima di costruirci sopra narrativa, non dopo che un revisore lo chiede in sede di discussione.
+
+Sulla composizione regime 63/21/16 (high/medium/low)
+
+Documentato onestamente in csi_construction.md come conseguenza attesa de trend secolare, non un bug — d'accordo. Ma questo stesso fatto rafforza il punto sopra: se "high" è strutturalmente sovra-rappresentato negli anni recenti (Mag7 era), allora beta_high nella regressione rischia di catturare in
+parte "essere nel periodo 2019-2026" (regime di volatilità sistemicamente diverso: COVID, tassi, AI-driven megacap rally) più che "essere in stato di concentrazione elevata" indipendentemente da quando accade. Il vostro rolling-60m già attenua questo rischio meglio di una classificazione expanding, ma non lo elimina: un controllo aggiuntivo — dummy di crisi (GFC, COVID) o un trend linear/quadratico in tempo calendariale accanto a regime_high — direbbe se beta_high sopravvive al netto di "essere in un decennio diverso". Non l'ho visto ancora fatto da nessuna parte nei log.
+
+---
+
+3. Interpretazione del risultato P-measure attuale
+
+La mia lettura: non è (solo) un problema di specifica locale da sistemare con un aggiustamento tecnico, ma nemmeno un segnale che la domanda di ricerca sia sbagliata. È, abbastanza precisamente, il risultato che la teoria esposta in Chapter One stesso avrebbe previsto se ci si fosse fermati a pensarci prima di girare la prima regressione.
+
+Il paragrafo 6 di Chapter One dice esplicitamente: "the welfare-relevant dimension of equity risk is not limited to variance... the magnitude of large losses, the persistence of drawdowns." Il paragrafo 28 (RQ2) è ancora più diretto: "A purely variance-based perspective would conclude that concentration is important only insofar as it raises realized volatility. Yet systemic fragility is often a tail-and-dependence phenomenon." In altre parole: il
+capitolo introduttivo pre-registra, di fatto, l'aspettativa che una regressione su volatilità realizzata media a 1 mese non sia il test giusto. E infatti è esattamente quello che è successo: β nullo sul CSI continuo (p=0.68), niente di clamoroso nemmeno col regime (p=0.06).
+
+Questo è, dal punto di vista della tesi, un risultato coerente con la propria teoria, non contro di essa — ma solo se lo si presenta così. Il rischio reale non è scientifico, è narrativo: se nel capitolo 4 finale la prima cosa che il lettore vede è "CSI non predice la volatilità realizzata media", prima di arrivare alle estensioni su coda/dispersione/drawdown, il risultato viene letto come un fallimento della CSI-come-state-variable, non come una conferma della RQ2 ("il canale non è la media, è la coda"). Sue espositivo nel capitolo scritto: presentare il test su RV
+media come una verifica preliminare esplicitamente motivata come "test della null hypothesis che il canale sia solo di livello/media" (che la teoria non predice comunque forte), e trattare i test su dispersione cross-sezionale / severità della coda downside come il test primario di RQ1/RQ2 — non come "next
+steps" in coda a un file di metodologia.
+
+Questo è già il piano che avete scritto in "Next steps" di p_measures.md (cross-sectional dispersion, poi downside/tail severity, poi orizzonte 3-6 mesi) — non sto suggerendo un piano diverso, sto suggerendo di non trattarlo come opzionale/eventuale ma di eseguirlo prima di scrivere altro testo interpretativo su questo risultato nullo, perché è il test che risponde effettivamente a RQ2, mentre RV-media risponde solo a una versione più debole e meno teoricamente motivata della domanda.
+
+Un'ultima nota, legata al punto 2 sopra: prima di procedere a costruire dispersion/tail-severity, vale la pena chiudere il test detrended-CSI-continuo che ho proposto — se scoprite che è un problema di trend e non di media-vs-coda, cambia quale delle due estensioni (detrending vs. nuova variabile dipendente) è la priorità reale.
+
+---
+
+4. Raccomandazioni prioritarie (con trade-off)
+
+1. Riallineare Chapter One alla pipeline reale del CSI (capitan 4-dimensionale).
+Pro: elimina un rischio di credibilità concreto e facilmente rilevabile da un revisore; costo minimo (editing testuale). Contro: indebolisce la claim di originalità dichiarata — bilanciato dal punto 2 se decidete di implementare risk concentration.
+Priorità: alta, a basso costo — farei questo per primo, indipendentemente dalle altre decisioni.
+
+2. Isolare se "regime batte continuo" è detrending o non-linearità, prima di scriverci sopra interpretazione.
+Ricostruire un CSI continuo detrended (rolling-mean o rank-percentile su 60m) e ri-testare Model 1.
+Pro: risolve un'ambiguità di identificazione reale con un tests a basso costo (riusa dati e struttura di regressione già esistenti); indirizza correttamente quale prossimo passo (rolling composite vs. quantile/local projection) ha più senso investire per primo. 
+Contro: nessuno significativo — è quasi puro upside, il costo è ore non settimane.
+Priorità: alta.
+
+3. Promuovere le estensioni "downside/tail severity" e "cross-sectional dispersion" da nextt-step a test primario di RQ2, prima di consolidare narrativa sul risultato nullo di RV-media.
+Pro: allinea il test empirico alla teoria del capitolo 1 (il canale atteso è la coda, non la media); evita che un risultato nullo preliminare venga letto come un fallimento della tesi invece che come conferma di RQ2.
+Contro: più lavoro prima di poter scrivere il Chapter 4 completo — ma è lavoro già pianificato, sto solo raccomandando di riordinare le priorità, non di aggiungere scope.
+Priorità: alta.
+
+4. Decidere esplicitamente (A) vs (B) su risk concentration —implementarla o dichiararla esplicitamente fuori scope per CSI v1.
+Pro: chiude il gap del punto 1 in modo sostanziale, non solo testuale — riusa il lavoro di design già fatto (Ledoit-Wolf, subset top-100). 
+Contro: costo di implementazione reale e non banale (stima Σ_t point-in-time su base espandente/rolling, nuovo collinearity check, possibile revisione del weighting del composito da 3 a 4 componenti). Non lo raccomanderei come prossimo passo tecnico immediato — lo definirei come decisione consapevole da prendere con visibilità sul tempo residuo, che non ho.
+Priorità: media, dipende dal timeline che non conosco.
+
+5. Blindare la significatività marginale (p=0.06) del modello a regimi con un test più robusto della persistenza (block bootstrap) prima di appoggiarci narrativa importante.
+Pro: un p-value borderline citato come "quasi significativo, motiva a continuare" è esattamente il tipo di risultato che un committee mette sotto pressione — meglio arrivare con l'inferenza già rinforzata.
+Contro: lavoro tecnico aggiuntivo non banale (scrivere e validare un bootstrap a blocchi coerente con l'autocorrelazione mensile).
+Priorità: media — importante prima della difesa, non bloccante per proseguire con Phase 4/5 nel frattempo.
+
+---
+
+In sintesi: la disciplina metodologica (point-in-time, burn-in, collinearity-check, documentazione delle decisioni) è già a un livello che raramente vedo — il problema non è rigore mancante, è coerenza tra quello che il capitolo indtroduttivo promette e quello che il CSI attuale effettivamente misura, più
+un'asimmetria di design (expanding vs rolling) tra CSI continuo e regime che rende ambigua l'interpretazione del vostro risultato più interessante finora.
+Sistemare questi due punti (1 e 2 sopra) costa relativamente poco e cambia sostanzialmente quanto è difendibile il capitolo 4 così com'è.
+
+✻ Brewed for 1m 43s
+
+※ recap: Reviewing your PhD thesis on the Concentration State In gave feedback on structure, CSI methodology, and P-measure results; next step is deciding whether to add risk concentration to the CSI or rewrite Chapter One to match the current build. (disable recaps in /config)
+
+
+❯ Voglio salvare in modo permanente il ragionamento della review esterna sulla struttura della tesi e sul CSI.
+
+  Crea un nuovo file docs/methodology_notes/external_review_20260824.md che documenti, in forma sintetica ma completa, i punti chiave della review:
+
+  Contesto: review ricevuta il 2026-08-24, dopo la chiusura di Fase 3 (CSI only capital-composite) e i primi due modelli Phase 4 (RV continuo nullo, RV regime marginale p=0.06).
+
+  Gap identificato tra Chapter One e la pipeline attuale: Chapter One presenta il CSI come un oggetto a 4 dimensioni (capital, risk, return-space, dependence concentration — par. 9-15, 31), ma la costruzione effettiva finora (csi_construction.md, decisione 2026-08-20) implementa solo capital concentration (hhi + cr_10 + entropy). Risk e dependence concentration sono già disegnate concettualmente in csi_construction.md (incluse le scelte T-vs-N, subset top-100, Ledoit-Wolf) ma non implementate; return-space concentration è solo definita.
+
+  Decisione presa: non trattare questo come un problema di credibilità da correggere subito nel testo, perché nessun revisore leggerà il lavoro prima della consegna finale. Invece, l'obiettivo è completare davvero il CSI a 4 dimensioni prima di chiudere la tesi — il testo verrà sincronizzato con la pipeline reale solo alla fine, aggiornandolo in base a quali dimensioni saranno effettivamente state costruite e aggregate con successo.
+
+  Rischio di identificazione non ancora risolto, da tenere presente: il confronto tra Model 1 (CSI continuo, expanding z-score) e Model 2 (regime, rolling 60 mesi) in Phase 4 confonde due manipolazioni contemporanee (continuo→discreto e expanding→rolling), quindi non è ancora chiaro se "il regime batte il continuo" per detrending o per genuina non-linearità. Test proposto e non ancora eseguito: costruire una versione CSI continuo detrended (rolling-mean-60m o rank-percentile sulla stessa finestra del regime) e ri-stimare Model 1 con quella, per isolare quale delle due spiegazioni è corretta.
+
+  Priorità nel proseguimento: prima chiudere l'ambiguità detrending/non-linearità sul P-measure esistente (punto 4), poi valutare dispersion/tail-severity come test primario di RQ2 (più coerente con la teoria di Chapter One rispetto a RV media), e in parallelo/successivamente costruire risk concentration come quarta dimensione del CSI, riusando il design già presente in csi_construction.md.
+
+  Aggiungi anche una riga in cima a csi_construction.md (nello status header) che rimanda a questo nuovo file per il contesto della decisione di espandere il CSI a 4 dimensioni, così chi legge la cronologia delle decisioni lo trova facilmente.
+
+  Non modificare ancora Chapter One né iniziare l'implementazione di risk concentration in questo passaggio — voglio solo che il ragionamento sia salvato e tracciabile prima di procedere.
+
+
+
+● Write(C:\Users\rebec\Desktop\Tesi\docs\methodology_notes\external_review_20260824.md)
+
+Wrote 143 lines to C:\Users\rebec\Desktop\Tesi\docs\methodology_notes\external_review_20260824.md
+# External review — 2026-08-24
+
+Status: **reasoning recorded, no action taken yet.** This note documents
+an external supervisory review received 2026-08-24, after Phase 3 closed
+(CSI as a capital-concentration-only composite) and the first two Phase 4
+models ran (continuous CSI null on 1-month realized vol; regime model
+marginal, `beta_high` p≈0.06). It exists so the reasoning behind two
+open decisions is traceable later, not lost in chat history. Nothing in
+`src/` or Chapter One has been changed as a result of this review yet —
+see "What this note does not do" at the end.
+
+## 1. Gap identified: Chapter One vs. the actual CSI pipeline
+
+Chapter One presents the CSI as a **four-dimensional** object — capital,
+risk, return-space, and dependence concentration (paragraphs 9-15, and
+paragraph 31: "The CSI explicitly separates capital concentration, risk
+concentration, return-space concentration, and dependence concentration").
+
+The construction actually decided and implemented so far
+(`csi_construction.md`, "Decision (2026-08-20)") is:
+
+```
+csi_t = mean(z_hhi,t, z_cr_10,t, z_entropy_concentration,t)
+```
+
+— three components, all three **capital concentration** measures (weight-
+based; no covariance or comovement information enters). Risk concentration
+and dependence concentration are already specified conceptually in
+`csi_construction.md` (including the hard parts: the T-vs-N caveat, the
+top-100 point-in-time subset, Ledoit-Wolf shrinkage) but **not
+implemented** in `src/concentration/measures.py`. Return-space
+concentration is defined but likewise not implemented.
+
+So the CSI as it stands today is, in substance, exactly the kind of
+weights-only object Chapter One's own motivation (paragraphs 4 and 9)
+argues is insufficient for systemic-risk analysis ("weight-based
+statistics are useful as a starting point... but they are not sufficient
+to characterize the economic implications of concentration"). This is not
+a claim that the three-component composite is poorly built — the
+collinearity check behind it (levels vs. differences, the `effective_n`
+identity handling) is careful, documented work — only that it is one
+dimension, not four, while the introductory chapter currently reads as if
+all four already exist.
+
+## 2. Decision: complete the CSI, don't just reword the chapter now
+
+**Decision (2026-08-24):** do not treat this gap as a credibility problem
+to patch in the text immediately. No reviewer/committee member will read
+the work before final submission, so there is no near-term audience for
+whom the mismatch is currently live. Instead:
+
+- The goal is to **actually complete the CSI to four dimensions** before
+  the thesis is finalized — build risk concentration and, time
+  permitting, dependence concentration and return-space concentration,
+  reusing the design already worked out in `csi_construction.md` rather
+  than re-deriving it.
+- Chapter One's text will be **synchronized with the real pipeline only
+  at the end**, once it is known which dimensions were actually built and
+  successfully aggregated into the composite. Rewriting the chapter now,
+  before knowing the final component set, risks a second rewrite later or
+  text that undersells what eventually gets built.
+- This means the four-dimensional framing in Chapter One is currently an
+  aspirational description of the target, not a description of the
+  current artifact, and is being carried as such deliberately — not an
+  oversight.
+
+**Trade-off, stated explicitly:** this defers a real inconsistency rather
+than resolving it immediately. If time runs out before risk/return-space/
+dependence concentration are built, Chapter One will need the "align text
+with pipeline" edit anyway (Recommendation 1 from the 2026-08-23 review),
+just later and under more time pressure. The decision to defer is a bet
+that implementation time is better spent now than editing time, given no
+external reader sees the gap in the meantime.
+
+## 3. Open identification risk: detrending vs. genuine non-linearity in Phase 4
+
+Model 1 (continuous CSI, expanding-window z-score) and Model 2 (regime
+dummies, rolling 60-month tercile classification) currently differ along
+**two** dimensions at once: continuous → discrete, *and* expanding window
+→ rolling window. `p_measures.md` currently reads Model 2 outperforming
+Model 1 (p≈0.06 vs. p=0.68 on `beta_high`/`csi_t` respectively) as
+evidence of non-linearity ("the nonlinear/regime specification is telling
+a materially different... story"). That is not yet established — the
+regime series is relative to its own trailing 5-year window by
+construction (i.e., already detrended), while the continuous CSI's
+expanding z-score is not (it is standardized against the full sample
+history, and the CSI series itself has a documented "pronounced secular
+trend" — `csi_construction.md`). The performance gap between the two
+models could equally be a **detrending** effect rather than a
+**non-linearity** effect, and the current setup cannot distinguish the
+two because it changes both things simultaneously.
+
+**Test proposed, not yet run:** construct a detrended continuous CSI —
+either `csi_t - rolling_mean_60m(csi_t)` or a rank-percentile computed
+over the same rolling 60-month window used by `classify_regime.py` — and
+re-estimate Model 1 with that series in place of the raw expanding
+z-score, holding everything else (dependent variable, `RV_t` control, HAC
+lags) fixed. If the coefficient becomes meaningfully significant once
+detrended, the story is "CSI predicts vol once the shared trend is
+removed," which motivates rebuilding the composite itself on a rolling
+basis (already listed as a Phase-6 robustness variant in `csi.md`) ahead
+of other extensions. If it stays null even detrended, the "genuine
+non-linearity / regime specification" reading in `p_measures.md` is
+better supported, and the priority shifts toward the dependent-variable
+extensions instead.
+
+## 4. Priority ordering for what comes next
+
+Agreed ordering, reasoning included so it doesn't need to be
+re-derived later:
+
+1. **Resolve the detrending/non-linearity ambiguity on the existing
+   P-measure result first** (Section 3 above) — cheap (reuses existing
+   data and regression scaffolding), and its outcome changes which of the
+   next two items is actually the right next step rather than a guess.
+2. **Then evaluate cross-sectional dispersion / downside-tail severity as
+   the primary test of RQ2**, ahead of further iteration on mean realized
+   volatility. Chapter One's own theory (paragraphs 6, 28) predicts the
+   effect should show up in tail/dispersion objects, not the mean — RV was
+   always a weaker-prior test of the thesis's actual claim, so it should
+   not anchor the interpretation before the tail-focused specifications
+   have been run.
+3. **In parallel or after that, build risk concentration as the CSI's
+   fourth dimension**, reusing the top-100 subset + Ledoit-Wolf design
+   already specified in `csi_construction.md` rather than redesigning it.
+   Chosen over dependence concentration as the next build target because
+   it shares the same estimated `Σ_t` needed anyway and is the cheaper of
+   the two remaining dimensions to add first.
+
+## What this note does not do
+
+- Does not change Chapter One's text — the four-dimension framing there
+  is left as-is, deliberately, per the decision in Section 2.
+- Does not implement risk concentration, return-space concentration, or
+  the detrended-CSI test — all three are next steps, not actioned here.
+- Does not change `src/csi/build_csi.py`, `classify_regime.py`, or either
+  Phase 4 regression script.
+
+Cross-references: `docs/methodology_notes/csi_construction.md` (component
+selection, the risk/dependence concentration design not yet built),
+`docs/methodology_notes/p_measures.md` (Phase 4 Model 1/Model 2 results
+this review reacts to), `docs/variable_definitions/csi.md` (expanding vs.
+rolling standardization trade-off referenced in Section 3).
+
+
+Ora aggiungo il rimando nello status header di csi_construction.md.
+
+● Update(docs\methodology_notes\csi_construction.md)
+Added 11 lines, removed 1 line
+# CSI construction methodology
+
+Status: **aggregation and regime classification both decided (2026-08-20).**
+Status: **aggregation and regime classification both decided (2026-08-20);
+scope decision to expand beyond capital concentration recorded
+2026-08-24.**
+Composite CSI = equal-weight z-score average of `hhi`, `cr_10`,
+`entropy_concentration` — see "Collinearity check results and component
+selection" and the "Decision" block under "Aggregation choices under
+
+downstream P-measure and Q-measure result's CSI version — update it again
+if the construction ever changes.
+
+**This is currently a capital-concentration-only composite** — the risk
+concentration and dependence concentration dimensions defined below are
+specified but not yet implemented, and Chapter One's four-dimensional CSI
+framing is ahead of this pipeline as a result. See
+`docs/methodology_notes/external_review_20260824.md` for the reasoning
+behind treating this as a scope target to complete (build the remaining
+dimensions) rather than a text mismatch to patch now.
+
+## What the CSI is
+
+The Concentration State Index (CSI) is a **structural state variable**, not
+
+Fatto. Ho creato docs/methodology_notes/external_review_20260824.md con le quattro sezioni richieste (gap Chapter One vs. pipeline, decisione di completare il CSI invece di correggere subito il testo, il rischio di identificazione detrending/non-linearità con il test proposto e non eseguito, l'ordine di priorità concordato), più una sezione esplicita "What this note does not do" per evitare ambiguità su cosa è stato o non è stato toccato.
+
+Ho anche aggiunto un rimando nello status header di csi_construction.md che segnala che il CSI è oggi capital-concentration-only e punta al nuovo file per il contesto della decisione.
+
+Nessuna modifica a Chapter One, nessuna implementazione di risk concentration, nessuna modifica agli script — solo il ragionamento salvato e tracciabile, come richiesto.
+
+✻ Baked for 54s

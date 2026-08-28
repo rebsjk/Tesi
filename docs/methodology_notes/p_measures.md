@@ -211,6 +211,31 @@ on the same data — motivates continuing to the dependent-variable and
 horizon extensions below rather than concluding the null from Model 1
 is final.
 
+## Robustness note: COVID-window sensitivity (flagged 2026-08-27, not yet resolved)
+
+**Independent of the risk-concentration integration question**
+(`csi_construction.md`, "Risk concentration: integration status") — this is
+a fragility of the existing capital-only models themselves, surfaced as a
+side effect of a robustness check run for that separate review.
+
+**Finding:** excluding 5 months (2020-02 to 2020-06) changes each model's
+R² by 8-9 percentage points (Model 1: 0.416→0.500; Model 2: 0.399→0.489).
+The primary coefficients do not flip: `csi_t` stays null (p=0.68→0.74);
+`regime_high` stays in the same marginal band (p=0.062→0.072) — but in
+Model 2 the point estimate itself shrinks by about a third
+(0.0049→0.0032).
+
+**Reading:** the qualitative conclusions already reported above are
+unaffected — this note does not call either Model 1's or Model 2's
+existing conclusion into question, and no revision to text already written
+using those results is implied. But a specification where 1.7-2% of the
+sample moves R² by 8-9pp, and shifts one of the two headline coefficients
+by roughly a third, is worth a stated robustness check (e.g. reporting
+full-sample and COVID-excluded estimates side by side, or an explicit
+COVID dummy) before either result is leaned on further — flagged here for
+whoever next revises this section, not resolved. Full detail:
+`outputs/logs/risk_concentration_incremental_power_check_pt2_robustness_20260827.txt`.
+
 ## Next steps
 
 ### Immediate next block: cross-sectional dispersion as the dependent variable

@@ -61,16 +61,41 @@ silently.
 
 | Dataset | Source | Table / fields (candidate) | Purpose | Status |
 |---|---|---|---|---|
-| Bloomberg options chains | `data_raw/bloomberg` | Strikes, expirations, bid/ask/mid, implied vol, open interest per underlying-date | IV surface fitting and risk-neutral moment extraction | **blocking** — pending source decision below |
-| OptionMetrics IvyDB | `data_raw/optionmetrics` | Option Prices (best bid/offer, IV), Security Prices (underlying alignment), Zero Curve (risk-free term structure for BKM-type moment formulas), Standardized Options / Volatility Surface (if licensed) | Cleaner, pre-standardized alternative/complement to raw Bloomberg chains; often preferred for surface-fitting robustness | **blocking** — pending source decision below |
+| Bloomberg options chains | `data_raw/bloomberg` | Strikes, expirations, bid/ask/mid, implied vol, open interest per underlying-date | IV surface fitting and risk-neutral moment extraction | **blocking** — source decided (below), chain itself not yet pulled |
+| ~~OptionMetrics IvyDB~~ | ~~`data_raw/optionmetrics`~~ | — | — | **not available** — this project's WRDS subscription does not include OptionMetrics access; `data_raw/optionmetrics/` removed 2026-08-25 (was an empty placeholder) |
 | CSI | `data_final/csi/` | Reused from Phase 3 | Conditioning variable for "does the Q-tail premium widen with the CSI regime" | **blocking**, but already satisfied once Phase 3 completes |
 
-**Open decision blocking this phase's pull scope:** is Bloomberg or
-OptionMetrics the primary options source, with the other used for
-cross-validation, or is only one licensed for this thesis? This must be
-confirmed with the advisor before `bloomberg-extractor`/`options-tail-analyst`
-write any Phase 5 extraction code — pulling both blind wastes a WRDS/
-Bloomberg query cycle on data that may not end up used.
+**Source decision resolved (2026-08-25): Bloomberg is the primary (and only
+available) options source.** OptionMetrics was never actually a live
+option — no WRDS license for it — so this isn't a preference between two
+available sources, it's the only one on the table. `bloomberg-extractor`
+can write Phase 5 extraction code against Bloomberg without waiting on an
+advisor call for this specific question.
+
+Note this decision sits alongside a related, separately-found entitlement
+gap: `spx_members_float_download.py` (Phase 1 weight cross-check, confirmed
+2026-07-02) found this same Bloomberg subscription is *not* entitled to
+official index-weight fields (`INDX_MWEIGHT_PX`'s "Percent Weight"/"Actual
+Weight" return a degenerate constant). Different field family from options,
+not evidence about options-chain entitlement either way.
+
+**The confirmed field set for Phase 5 is the one already in
+`bloomberg_field_reference.md`** — SPX ATM IV (30D, 3M; 6M/12M ATM
+confirmed *not* available as a single field), three skew-wing points (1M
+25D put, 1M 25D call, 3M ATM put), the VIX family (spot, 9D, 3M, 6M), the
+CBOE SKEW index. Phase 5 construction should design around this set as
+given, not plan around re-checking it.
+
+Precision note on what "not available" actually covers here, since this
+project treats "confirmed unavailable" and "never tested" as different
+statuses everywhere else: the only wing points confirmed *not* to work are
+**25-delta calls and 10-delta puts specifically at the 3M and 6M tenors**
+(`bloomberg_field_reference.md` section 2). 5-delta or 15-delta or
+35-delta wings at any tenor, and 10-delta (or 5-delta) wings at the 1M
+tenor specifically, were never tried — their status is "untested," not
+"unavailable." Not a reason to go re-test them now; just don't carry
+forward a broader "wider deltas don't work" conclusion than what was
+actually checked.
 
 **Open decision blocking pull scope:** index-level underlying (e.g. a
 single broad index option chain) vs. a curated set of constituent-level
@@ -87,7 +112,7 @@ for the full design rationale.
 
 | Dataset | Source | Table / fields (candidate) | Purpose | Status |
 |---|---|---|---|---|
-| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure proxy; cap-weighted vs. equal-weighted flow differential | **needed** — fields confirmed non-blank for all 4 tickers (2026-07-04); full historical pull not yet run |
+| ETF AUM + net flow history (SPY, IVV, VOO, RSP) | `data_raw/bloomberg` | `FUND_TOTAL_ASSETS`, `FUND_FLOW` | Passive/mechanical demand pressure proxy; cap-weighted vs. equal-weighted flow differential | **done** — full historical pull confirmed 2026-08-25: `bloomberg_passive_flows_20260704.csv`, 23,572 rows, all 4 tickers, 1993-01-29 to 2026-07-02 |
 
 ## Open decisions summary
 
@@ -104,9 +129,10 @@ phase's agent begins pulling:
    already exists.
 2. Whether sector-adjusted concentration will be implemented — determines
    whether GICS/Compustat sector data is ever pulled — Phase 2, optional.
-3. Bloomberg vs. OptionMetrics as the primary options-tail source — blocks
-   Phase 5.
+3. ~~Bloomberg vs. OptionMetrics as the primary options-tail source~~ —
+   **resolved 2026-08-25: Bloomberg**, OptionMetrics not licensed under
+   this project's WRDS subscription.
 4. Index-level vs. constituent-level (vs. both) options underlyings —
-   blocks Phase 5 pull scope.
+   still open, blocks Phase 5 pull scope.
 5. Fama-French factor source and storage location (`data_raw/manual/` vs.
    a new `data_raw/famafrench/`) — needed for Phase 4, not blocking.
