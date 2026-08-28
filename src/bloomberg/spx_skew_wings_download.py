@@ -20,6 +20,14 @@ numerically identical to 2M_PUT_IMP_VOL_25DELTA_DFLT and
 2M_PUT_IMP_VOL_10DELTA_DFLT respectively (same strike, quoted from the
 call side instead of the put side) — pulling them would duplicate data
 already in this FIELDS dict, not add smile information.
+
+True start date is 2005-01, not 2006 (re-verified 2026-08-29 via
+check_skew_wings_pre2006_coverage.py — see bloomberg_field_reference.md).
+2006 was only ever the date the original check happened to start from,
+never a confirmed true earliest date. Pull historical data with
+`--start 2005-01-01`; 2000-2004 is confirmed blank for every field here,
+so don't pull from 2000 even though that would match the CRSP panel's own
+start.
 """
 
 from __future__ import annotations

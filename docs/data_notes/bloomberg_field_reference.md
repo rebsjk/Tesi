@@ -35,23 +35,41 @@ input for the CSI comparison, not just a vol level. Ticker: `SPX Index`.
 
 | Concept | Proposed mnemonic | To be confirmed in terminal? | Notes |
 |---|---|---|---|
-| 1M 10-delta put IV | `1M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=16.9686 (2026-08-28 snapshot). | Deep-tail wing, added to sharpen the 1M smile's downside curvature. |
-| 1M 25-delta put IV | `1M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
-| 1M 50-delta put IV | `1M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.3114. | ATM-equivalent, put side — numerically identical to the 50-delta call at the same tenor in the 2026-08-28 snapshot. |
-| 1M 10-delta call IV | `1M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=9.9702. | Deep-tail wing, upside. |
-| 1M 25-delta call IV | `1M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
-| 1M 50-delta call IV | `1M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.3114. | ATM-equivalent, call side. |
-| 2M 10-delta put IV | `2M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=19.2419. | New tenor — no 2M field existed in this spec before 2026-08-28. |
-| 2M 25-delta put IV | `2M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=14.9526. | |
-| 2M 40-delta put IV | `2M_PUT_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=13.1981. | |
-| 2M 50-delta put IV | `2M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=12.1849. | ATM-equivalent, 2M. |
-| 2M 10-delta call IV | `2M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=10.7006. | |
-| 2M 25-delta call IV | `2M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.1098. | |
-| 2M 40-delta call IV | `2M_CALL_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.6621. | |
-| 2M 50-delta call IV | `2M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=12.1849. | Numerically identical to the 2M 50-delta put in the 2026-08-28 snapshot. |
+| 1M 10-delta put IV | `1M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=16.9686 (2026-08-28 snapshot). | Deep-tail wing, added to sharpen the 1M smile's downside curvature. |
+| 1M 25-delta put IV | `1M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2005-01 (re-verified 2026-08-29, corrected from the originally-assumed 2006). | Used to construct the short-tenor skew/wing measures. |
+| 1M 50-delta put IV | `1M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=11.3114. | ATM-equivalent, put side — numerically identical to the 50-delta call at the same tenor in the 2026-08-28 snapshot. |
+| 1M 10-delta call IV | `1M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=9.9702. | Deep-tail wing, upside. |
+| 1M 25-delta call IV | `1M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2005-01 (re-verified 2026-08-29, corrected from the originally-assumed 2006). | Used to construct the short-tenor skew/wing measures. |
+| 1M 50-delta call IV | `1M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=11.3114. | ATM-equivalent, call side. |
+| 2M 10-delta put IV | `2M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=19.2419. | New tenor — no 2M field existed in this spec before 2026-08-28. |
+| 2M 25-delta put IV | `2M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=14.9526. | |
+| 2M 40-delta put IV | `2M_PUT_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=13.1981. | |
+| 2M 50-delta put IV | `2M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=12.1849. | ATM-equivalent, 2M. |
+| 2M 10-delta call IV | `2M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=10.7006. | |
+| 2M 25-delta call IV | `2M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=11.1098. | |
+| 2M 40-delta call IV | `2M_CALL_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=11.6621. | |
+| 2M 50-delta call IV | `2M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2005-01 (re-verified 2026-08-29), BDP=12.1849. | Numerically identical to the 2M 50-delta put in the 2026-08-28 snapshot. |
 | 2M 75-delta call IV | `2M_CALL_IMP_VOL_75DELTA_DFLT` | Confirmed resolves (2026-08-28), but **not pulled** — see Notes. | BDP=14.9526, numerically identical to `2M_PUT_IMP_VOL_25DELTA_DFLT` — same strike quoted from the call side, no new smile information. Excluded from `spx_skew_wings_download.py`'s `FIELDS`. |
 | 2M 90-delta call IV | `2M_CALL_IMP_VOL_90DELTA_DFLT` | Confirmed resolves (2026-08-28), but **not pulled** — see Notes. | BDP=19.2419, numerically identical to `2M_PUT_IMP_VOL_10DELTA_DFLT`. Same reason as the 75-delta row above. |
-| 3M ATM put IV | `3MO_PUT_IMP_VOL` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
+| 3M ATM put IV | `3MO_PUT_IMP_VOL` | Confirmed in terminal (2026-07-02); non-blank from 2005-01 (re-verified 2026-08-29, corrected from the originally-assumed 2006). | Used to construct the short-tenor skew/wing measures. |
+
+**Start-date correction (2026-08-29): 2005-01, not 2006.** Every skew-wing
+field above was only ever checked starting from 2006 — the checklist's own
+"don't assume 2006, bisect forward if blank" instruction was never applied
+*backward*. A dedicated check
+(`src/bloomberg/check_skew_wings_pre2006_coverage.py`) tested Jan 2000
+through Jan 2005 (2000 chosen to match the CRSP universe panel's own
+2000-01-03 start, not further back) and found **all 15 fields uniformly
+non-blank starting January 2005, and blank for 2000-2004** — a single,
+consistent cutover across every field, consistent with a vendor-side
+computation-start boundary for this vol-surface product rather than a
+per-field idiosyncrasy. `spx_skew_wings_download.py`'s historical pull
+should use `--start 2005-01-01`, not 2006 or 2000 (2000-2004 would just
+return blanks, wasting a query cycle on nothing). This start-date question
+was never tested for the other confirmed fields in this document (ATM
+term structure, VIX family, SKEW index, SPX levels) — they may also start
+earlier than their documented 2006/2008/2011 dates, but that hasn't been
+checked.
 
 **Model suffix note (2026-08-28):** every mnemonic above uses the `_DFLT`
 suffix (Bloomberg's default vol-surface model). FLDS also surfaces a
