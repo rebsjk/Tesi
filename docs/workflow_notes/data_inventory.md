@@ -79,23 +79,26 @@ official index-weight fields (`INDX_MWEIGHT_PX`'s "Percent Weight"/"Actual
 Weight" return a degenerate constant). Different field family from options,
 not evidence about options-chain entitlement either way.
 
-**The confirmed field set for Phase 5 is the one already in
-`bloomberg_field_reference.md`** — SPX ATM IV (30D, 3M; 6M/12M ATM
-confirmed *not* available as a single field), three skew-wing points (1M
-25D put, 1M 25D call, 3M ATM put), the VIX family (spot, 9D, 3M, 6M), the
-CBOE SKEW index. Phase 5 construction should design around this set as
-given, not plan around re-checking it.
+**The confirmed field set for Phase 5, updated 2026-08-28, is the one now
+in `bloomberg_field_reference.md`** — SPX ATM IV (30D, 3M; 6M/12M ATM
+confirmed *not* available as a single field), a much wider skew-wing set
+than before (1M 10/25/50-delta put and call, 2M 10/25/40/50-delta put and
+call, 3M ATM put), the VIX family (spot, 9D, 3M, 6M), the CBOE SKEW index.
+Phase 5 construction should design around this set as given.
 
-Precision note on what "not available" actually covers here, since this
-project treats "confirmed unavailable" and "never tested" as different
-statuses everywhere else: the only wing points confirmed *not* to work are
-**25-delta calls and 10-delta puts specifically at the 3M and 6M tenors**
-(`bloomberg_field_reference.md` section 2). 5-delta or 15-delta or
-35-delta wings at any tenor, and 10-delta (or 5-delta) wings at the 1M
-tenor specifically, were never tried — their status is "untested," not
-"unavailable." Not a reason to go re-test them now; just don't carry
-forward a broader "wider deltas don't work" conclusion than what was
-actually checked.
+**Update 2026-08-28 — the 1M/2M delta grid is now confirmed and pulled
+into `spx_skew_wings_download.py`.** An FLDS search on "imp vol" against
+`SPX Index` surfaced the real available delta-bucket family on this
+subscription: 10/25/40/50 (plus redundant 75/90 call-side points) across
+exactly two tenors, 1M and 2M. All were confirmed both via BDH (non-blank
+from 2006) and BDP (real, differentiated current values, not the
+degenerate-constant pattern seen on the unrelated official-index-weight
+fields) — see `bloomberg_field_reference.md` section 2 for the full table.
+This also resolves the earlier "untested, not unavailable" open question
+below: the 3M/6M delta-wing family doesn't exist on this subscription at
+all (not just the specific 25D-call/10D-put combination originally
+tried) — confirmed by the FLDS search turning up zero 3M/6M delta-bucket
+entries, not merely inferred.
 
 **Open decision blocking pull scope:** index-level underlying (e.g. a
 single broad index option chain) vs. a curated set of constituent-level

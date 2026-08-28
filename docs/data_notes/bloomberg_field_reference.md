@@ -35,17 +35,41 @@ input for the CSI comparison, not just a vol level. Ticker: `SPX Index`.
 
 | Concept | Proposed mnemonic | To be confirmed in terminal? | Notes |
 |---|---|---|---|
+| 1M 10-delta put IV | `1M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=16.9686 (2026-08-28 snapshot). | Deep-tail wing, added to sharpen the 1M smile's downside curvature. |
 | 1M 25-delta put IV | `1M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
+| 1M 50-delta put IV | `1M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.3114. | ATM-equivalent, put side — numerically identical to the 50-delta call at the same tenor in the 2026-08-28 snapshot. |
+| 1M 10-delta call IV | `1M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=9.9702. | Deep-tail wing, upside. |
 | 1M 25-delta call IV | `1M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
+| 1M 50-delta call IV | `1M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.3114. | ATM-equivalent, call side. |
+| 2M 10-delta put IV | `2M_PUT_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=19.2419. | New tenor — no 2M field existed in this spec before 2026-08-28. |
+| 2M 25-delta put IV | `2M_PUT_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=14.9526. | |
+| 2M 40-delta put IV | `2M_PUT_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=13.1981. | |
+| 2M 50-delta put IV | `2M_PUT_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=12.1849. | ATM-equivalent, 2M. |
+| 2M 10-delta call IV | `2M_CALL_IMP_VOL_10DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=10.7006. | |
+| 2M 25-delta call IV | `2M_CALL_IMP_VOL_25DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.1098. | |
+| 2M 40-delta call IV | `2M_CALL_IMP_VOL_40DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=11.6621. | |
+| 2M 50-delta call IV | `2M_CALL_IMP_VOL_50DELTA_DFLT` | Confirmed in terminal (2026-08-28); non-blank from 2006, BDP=12.1849. | Numerically identical to the 2M 50-delta put in the 2026-08-28 snapshot. |
+| 2M 75-delta call IV | `2M_CALL_IMP_VOL_75DELTA_DFLT` | Confirmed resolves (2026-08-28), but **not pulled** — see Notes. | BDP=14.9526, numerically identical to `2M_PUT_IMP_VOL_25DELTA_DFLT` — same strike quoted from the call side, no new smile information. Excluded from `spx_skew_wings_download.py`'s `FIELDS`. |
+| 2M 90-delta call IV | `2M_CALL_IMP_VOL_90DELTA_DFLT` | Confirmed resolves (2026-08-28), but **not pulled** — see Notes. | BDP=19.2419, numerically identical to `2M_PUT_IMP_VOL_10DELTA_DFLT`. Same reason as the 75-delta row above. |
 | 3M ATM put IV | `3MO_PUT_IMP_VOL` | Confirmed in terminal (2026-07-02); non-blank from 2006. | Used to construct the short-tenor skew/wing measures. |
 
+**Model suffix note (2026-08-28):** every mnemonic above uses the `_DFLT`
+suffix (Bloomberg's default vol-surface model). FLDS also surfaces a
+`_VG` (Vanna-Volga) variant of the same delta/tenor points — a different
+surface-interpolation model, not a second independent data source. Stay
+on `_DFLT` throughout this spec for internal consistency; don't mix `_VG`
+points into the same smile without an explicit decision to do so.
+
+**3M/6M delta-wing family: re-checked 2026-08-28, still doesn't exist.**
 The original candidate list also included 25-delta calls and 10-delta puts
 at the 3M and 6M tenors; those did not confirm cleanly against this
-subscription and were dropped from the baseline spec in favor of the three
-fields above. If deeper-tail or longer-tenor skew measures turn out to be
-needed later, re-run the terminal confirmation checklist below against
-alternate mnemonics before adding them back — don't assume they'll behave
-the same way as the three confirmed fields.
+subscription in 2026-07-02, and an FLDS search on "imp vol" against `SPX
+Index` on 2026-08-28 confirms why: the only delta-bucket families this
+subscription actually exposes are 1M and 2M (10/25/40/50, plus redundant
+75/90 call-side points at 2M) — there is no 3M/6M delta-wing family to
+find, confirmed rather than assumed. 3M keeps its single ATM-put field
+above; 6M has no wing or ATM single-field coverage at all (see section 1),
+only the VIX6M proxy.
 
 ## 3. CBOE SKEW Index
 

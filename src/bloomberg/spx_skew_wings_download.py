@@ -2,16 +2,24 @@
 
 Confirmed field source: docs/data_notes/bloomberg_field_reference.md,
 section 2 ("SPX skew wings (fixed-delta put/call implied vol)"), confirmed
-in terminal 2026-07-02. This is the core Q-measure skew/tail-asymmetry
-input for the CSI comparison, not just a vol level — treat it with the
-same priority as the ATM term structure pull.
+in terminal 2026-07-02 (1M 25D wings, 3M ATM put) and extended 2026-08-28
+(1M 10D/50D wings, full 2M delta grid). This is the core Q-measure
+skew/tail-asymmetry input for the CSI comparison, not just a vol level —
+treat it with the same priority as the ATM term structure pull.
 
-The confirmed spec is exactly three series: the 1M 25-delta put/call wings
-plus the 3M ATM put. The wider candidate set originally considered here
-(3M/6M 25-delta calls, 3M/6M 10-delta puts) did not confirm cleanly
-against this subscription and has been dropped from the baseline spec —
-see bloomberg_field_reference.md's terminal confirmation checklist if a
-wider skew set needs to be re-verified and added back later.
+3M/6M 25-delta calls and 10-delta puts still do not confirm on this
+subscription (checked both 2026-07-02 and again 2026-08-28) — no 3M/6M
+delta-wing family exists here, only the single 3M ATM put field already in
+this spec. The delta grid that does exist is 10/25/40/50(/75/90 call-side)
+across exactly two tenors, 1M and 2M — see bloomberg_field_reference.md
+section 2 for the full confirmation record.
+
+2M_CALL_IMP_VOL_75DELTA_DFLT and 2M_CALL_IMP_VOL_90DELTA_DFLT are
+deliberately NOT included below: confirmed empirically (2026-08-28) to be
+numerically identical to 2M_PUT_IMP_VOL_25DELTA_DFLT and
+2M_PUT_IMP_VOL_10DELTA_DFLT respectively (same strike, quoted from the
+call side instead of the put side) — pulling them would duplicate data
+already in this FIELDS dict, not add smile information.
 """
 
 from __future__ import annotations
@@ -38,15 +46,32 @@ except ImportError:
 
 
 # concept name -> (Bloomberg ticker, Bloomberg field mnemonic).
-# Source: docs/data_notes/bloomberg_field_reference.md, section 2 —
-# confirmed in terminal 2026-07-02; all three fields non-blank from 2006.
-# This is the full confirmed set — do not add back 3M/6M 25-delta calls or
-# 10-delta puts without re-running the terminal confirmation checklist in
-# bloomberg_field_reference.md first, they did not confirm on this
-# subscription.
+# Source: docs/data_notes/bloomberg_field_reference.md, section 2.
+# Original three (confirmed 2026-07-02, non-blank from 2006) plus the
+# extended 1M/2M delta grid (confirmed 2026-08-28, non-blank from 2006 via
+# BDH, real differentiated BDP values, not the degenerate-constant pattern
+# seen on the unrelated official-index-weight fields). All mnemonics use
+# the "_DFLT" model suffix (Bloomberg's default surface model) for
+# consistency with the original three fields — do not mix in a "_VG"
+# (Vanna-Volga) variant for any of these without an explicit decision to
+# do so, see bloomberg_field_reference.md.
+# Do not add back 3M/6M 25-delta calls or 10-delta puts, or the redundant
+# 2M 75D/90D call fields — see module docstring.
 FIELDS: dict[str, tuple[str, str]] = {
+    "iv_1m_put_10d": ("SPX Index", "1M_PUT_IMP_VOL_10DELTA_DFLT"),
     "iv_1m_put_25d": ("SPX Index", "1M_PUT_IMP_VOL_25DELTA_DFLT"),
+    "iv_1m_put_50d": ("SPX Index", "1M_PUT_IMP_VOL_50DELTA_DFLT"),
+    "iv_1m_call_10d": ("SPX Index", "1M_CALL_IMP_VOL_10DELTA_DFLT"),
     "iv_1m_call_25d": ("SPX Index", "1M_CALL_IMP_VOL_25DELTA_DFLT"),
+    "iv_1m_call_50d": ("SPX Index", "1M_CALL_IMP_VOL_50DELTA_DFLT"),
+    "iv_2m_put_10d": ("SPX Index", "2M_PUT_IMP_VOL_10DELTA_DFLT"),
+    "iv_2m_put_25d": ("SPX Index", "2M_PUT_IMP_VOL_25DELTA_DFLT"),
+    "iv_2m_put_40d": ("SPX Index", "2M_PUT_IMP_VOL_40DELTA_DFLT"),
+    "iv_2m_put_50d": ("SPX Index", "2M_PUT_IMP_VOL_50DELTA_DFLT"),
+    "iv_2m_call_10d": ("SPX Index", "2M_CALL_IMP_VOL_10DELTA_DFLT"),
+    "iv_2m_call_25d": ("SPX Index", "2M_CALL_IMP_VOL_25DELTA_DFLT"),
+    "iv_2m_call_40d": ("SPX Index", "2M_CALL_IMP_VOL_40DELTA_DFLT"),
+    "iv_2m_call_50d": ("SPX Index", "2M_CALL_IMP_VOL_50DELTA_DFLT"),
     "iv_3m_atm_put": ("SPX Index", "3MO_PUT_IMP_VOL"),
 }
 
