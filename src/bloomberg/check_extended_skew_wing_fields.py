@@ -72,16 +72,35 @@ CANDIDATES: dict[str, str] = {
 }
 
 
+def _bdp_value(df: object, mnemonic: str) -> object:
+    """Extract the single scalar value from a blp.bdp() result, robust to
+    either column shape xbbg can return for a one-ticker/one-field request:
+    long format (columns ticker/field/value — the same shape bdh() uses,
+    per the _bdh_to_wide docstring in spx_skew_wings_download.py) or old
+    wide format (a column literally named after the mnemonic, case
+    varying). Returns the raw row as a dict if neither shape matches,
+    rather than silently returning None — a None here should mean "no
+    data", never "couldn't figure out the column layout"."""
+    if not hasattr(df, "empty") and hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+    if df.empty:
+        return None
+    row = df.iloc[0]
+    if "value" in df.columns:
+        return row["value"]
+    for col in df.columns:
+        if str(col).lower() == mnemonic.lower():
+            return row[col]
+    return row.to_dict()
+
+
 def check_bdp() -> dict[str, object]:
     """Single current value per candidate — confirms the field resolves at all."""
     results: dict[str, object] = {}
     for name, mnemonic in CANDIDATES.items():
         try:
             df = blp.bdp(tickers=TICKER, flds=mnemonic, backend="pandas")
-            if not hasattr(df, "empty") and hasattr(df, "to_pandas"):
-                df = df.to_pandas()
-            val = df.iloc[0].get(mnemonic.lower(), df.iloc[0].get(mnemonic)) if not df.empty else None
-            results[name] = val
+            results[name] = _bdp_value(df, mnemonic)
         except Exception as exc:  # noqa: BLE001 - want to see every field's own error
             results[name] = f"ERROR: {exc!r}"
     return results
