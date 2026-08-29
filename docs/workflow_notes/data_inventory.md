@@ -61,7 +61,8 @@ silently.
 
 | Dataset | Source | Table / fields (candidate) | Purpose | Status |
 |---|---|---|---|---|
-| Bloomberg options chains | `data_raw/bloomberg` | Strikes, expirations, bid/ask/mid, implied vol, open interest per underlying-date | IV surface fitting and risk-neutral moment extraction | **blocking** — source decided (below), chain itself not yet pulled |
+| SPX index-level Q-signals (ATM term structure, skew wings, VIX family + SKEW) | `data_raw/bloomberg`, cleaned to `data_interim/bloomberg/` + `data_interim/options/` | 21 value columns, 2005-01 to 2026-08, see [bloomberg_spx_q_signals_pull_20260828.md](../data_notes/bloomberg_spx_q_signals_pull_20260828.md) | Index-level IV surface points and risk-neutral tail benchmarks — the confirmed field set for a parametric (not literal strike-continuum) Q-measure construction | **done** (index-level scope) |
+| Literal Bloomberg options chains (strikes, expirations, bid/ask/mid, OI per underlying-date) | `data_raw/bloomberg` | — | Would be needed only for a true strike-continuum / model-free BKM-style moment extraction, or for constituent-level analysis | **not pursued** — scope decision 2026-08-29 (below); Bloomberg terminal access has since ended, so this would require a fresh session if scope changes |
 | ~~OptionMetrics IvyDB~~ | ~~`data_raw/optionmetrics`~~ | — | — | **not available** — this project's WRDS subscription does not include OptionMetrics access; `data_raw/optionmetrics/` removed 2026-08-25 (was an empty placeholder) |
 | CSI | `data_final/csi/` | Reused from Phase 3 | Conditioning variable for "does the Q-tail premium widen with the CSI regime" | **blocking**, but already satisfied once Phase 3 completes |
 
@@ -100,11 +101,18 @@ all (not just the specific 25D-call/10D-put combination originally
 tried) — confirmed by the FLDS search turning up zero 3M/6M delta-bucket
 entries, not merely inferred.
 
-**Open decision blocking pull scope:** index-level underlying (e.g. a
-single broad index option chain) vs. a curated set of constituent-level
-option chains vs. both. `options-tail-analyst`'s scope already flags that
-these answer different questions; this inventory just makes explicit that
-the decision has to be made *before* the pull, not after.
+**Pull-scope decision resolved (2026-08-29): index-level only, for now.**
+Confirmed before Bloomberg terminal access ended — see
+[bloomberg_spx_q_signals_pull_20260828.md](../data_notes/bloomberg_spx_q_signals_pull_20260828.md).
+Given what the field-entitlement checks already found (no delta buckets
+beyond 10D, no 3M/6M wing family, no official index weights), the
+practical Phase-5 plan is a parametric risk-neutral density calibrated on
+the sparse SPX-level points now in `data_interim/options/`, not a literal
+strike-continuum BKM extraction — a constituent-level or literal-chain
+pull was never actually the live plan by the time this was confirmed. If
+a future decision reopens constituent-level analysis, that requires a new
+Bloomberg terminal session — access to the one used for this pull has
+ended.
 
 ## (f) Passive flows — auxiliary channel block (Phase 4/6 input)
 
@@ -135,7 +143,9 @@ phase's agent begins pulling:
 3. ~~Bloomberg vs. OptionMetrics as the primary options-tail source~~ —
    **resolved 2026-08-25: Bloomberg**, OptionMetrics not licensed under
    this project's WRDS subscription.
-4. Index-level vs. constituent-level (vs. both) options underlyings —
-   still open, blocks Phase 5 pull scope.
+4. ~~Index-level vs. constituent-level (vs. both) options underlyings~~ —
+   **resolved 2026-08-29: index-level only, for now.** See section (e)
+   above and `bloomberg_spx_q_signals_pull_20260828.md`. Reopening this
+   later requires a new Bloomberg terminal session.
 5. Fama-French factor source and storage location (`data_raw/manual/` vs.
    a new `data_raw/famafrench/`) — needed for Phase 4, not blocking.

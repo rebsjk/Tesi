@@ -1,0 +1,21 @@
+2026-08-29 11:50:12,013 INFO Logging to C:\Users\rebec\Desktop\Tesi\outputs\logs\clean_spx_q_signals_20260829.txt
+2026-08-29 11:50:12,102 INFO Loaded raw ATM term structure: C:\Users\rebec\Desktop\Tesi\data_raw\bloomberg\bloomberg_spx_iv_term_structure_20260828.csv (5447 rows)
+2026-08-29 11:50:12,102 INFO Loaded raw skew wings:         C:\Users\rebec\Desktop\Tesi\data_raw\bloomberg\bloomberg_spx_skew_wings_20260828.csv (5447 rows)
+2026-08-29 11:50:12,102 INFO Loaded raw vol indexes:        C:\Users\rebec\Desktop\Tesi\data_raw\bloomberg\bloomberg_vol_indexes_20260828.csv (5480 rows)
+2026-08-29 11:50:12,110 INFO skew_wings.iv_1m_put_10d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,111 INFO skew_wings.iv_1m_put_25d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,111 INFO skew_wings.iv_1m_put_50d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,112 INFO skew_wings.iv_1m_call_10d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,112 INFO skew_wings.iv_1m_call_25d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,113 INFO skew_wings.iv_1m_call_50d: 4 null values (range 2005-12-12 to 2005-12-15)
+2026-08-29 11:50:12,114 INFO vol_indexes.vix9d: 1543 null values (range 2005-01-03 to 2026-07-03)
+2026-08-29 11:50:12,115 INFO vol_indexes.vix3m: 32 null values (range 2022-05-30 to 2026-07-03)
+2026-08-29 11:50:12,115 INFO vol_indexes.vix6m: 786 null values (range 2005-01-03 to 2026-07-03)
+2026-08-29 11:50:12,115 INFO vol_indexes.skew: 36 null values (range 2009-12-31 to 2026-08-28)
+2026-08-29 11:50:12,117 INFO Confirmed known 1M skew-wing gap still present: ['2005-12-12', '2005-12-13', '2005-12-14', '2005-12-15'] (vendor-side, not a pull error — see docs/data_notes/bloomberg_field_reference.md)
+2026-08-29 11:50:12,179 INFO Wrote 5447 rows to C:\Users\rebec\Desktop\Tesi\data_interim\bloomberg\bloomberg_spx_iv_term_structure_clean_20260829.csv
+2026-08-29 11:50:12,180 INFO Wrote 5447 rows to C:\Users\rebec\Desktop\Tesi\data_interim\bloomberg\bloomberg_spx_skew_wings_clean_20260829.csv
+2026-08-29 11:50:12,180 INFO Wrote 5480 rows to C:\Users\rebec\Desktop\Tesi\data_interim\bloomberg\bloomberg_vol_indexes_clean_20260829.csv
+2026-08-29 11:50:12,182 INFO Merged panel: 5447 rows (inner join). vol_indexes contributed 33 rows not present in the SPX-Index-sourced files (expected: US market-holiday calendar rows — see module docstring) and 5447 rows shared with iv_term/skew_wings survived the join.
+2026-08-29 11:50:12,232 INFO Wrote 5447 merged rows to C:\Users\rebec\Desktop\Tesi\data_interim\options\spx_q_signals_daily_clean_20260829.csv
+2026-08-29 11:50:12,233 INFO Merged date range: 2005-01-03 to 2026-08-27
